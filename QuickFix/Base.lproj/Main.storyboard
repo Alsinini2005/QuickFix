@@ -21,7 +21,40 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="e8g-a1-oOs" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-879" y="-24"/>
+            <point key="canvasLocation" x="260" y="-46"/>
+        </scene>
+        <!--Settings-->
+        <scene sceneID="vQg-nf-FGo">
+            <objects>
+                <viewController id="Twr-1n-XBP" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="iFs-VA-xFA">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="ijo-cl-lJM"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Settings" image="gearshape" catalog="system" id="PQr-Kz-uoi"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="1WX-Wp-itU" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-604" y="-427"/>
+        </scene>
+        <!--Tab Bar Controller-->
+        <scene sceneID="B0N-IF-GzJ">
+            <objects>
+                <tabBarController id="1Ly-Qo-naC" sceneMemberID="viewController">
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="Au8-xN-1LF">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="Twr-1n-XBP" kind="relationship" relationship="viewControllers" id="b13-hc-NVY"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dfU-3f-dmk" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1421" y="-408"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
@@ -36,10 +69,11 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="113" y="-2"/>
+            <point key="canvasLocation" x="938" y="5"/>
         </scene>
     </scenes>
     <resources>
+        <image name="gearshape" catalog="system" width="128" height="123"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
