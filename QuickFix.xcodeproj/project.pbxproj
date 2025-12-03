@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CC2330AC2EDD7EC90031D5DC /* QuickFix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickFix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC2330AC2EDD7EC90031D5DC /* QuickFix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = QuickFix.app; path = "/Users/bp-36-201-07/Desktop/202201922/QuickFix/build/Debug-iphoneos/QuickFix.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -46,16 +46,7 @@
 			isa = PBXGroup;
 			children = (
 				CC2330AE2EDD7EC90031D5DC /* QuickFix */,
-				CC2330AD2EDD7EC90031D5DC /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		CC2330AD2EDD7EC90031D5DC /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				CC2330AC2EDD7EC90031D5DC /* QuickFix.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,7 +99,7 @@
 			mainGroup = CC2330A32EDD7EC90031D5DC;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = CC2330AD2EDD7EC90031D5DC /* Products */;
+			productRefGroup = CC2330A32EDD7EC90031D5DC;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
