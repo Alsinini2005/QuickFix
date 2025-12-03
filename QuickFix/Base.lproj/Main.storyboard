@@ -9,28 +9,19 @@
     </dependencies>
     <scenes>
         <!--View Controller-->
-        <scene sceneID="SaC-nQ-eKf">
+        <scene sceneID="8r4-8x-w8W">
             <objects>
-                <viewController id="lNK-te-6i4" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="3PO-Ya-1ZW">
+                <viewController id="xeD-Uu-2et" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="mDw-bB-Ydi">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <navigationBar contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="v5W-21-YbV">
-                                <rect key="frame" x="0.0" y="74" width="393" height="44"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                <items>
-                                    <navigationItem title="Notification Center" id="lsU-ev-UIc"/>
-                                </items>
-                            </navigationBar>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="vgZ-y9-aqf"/>
+                        <viewLayoutGuide key="safeArea" id="xLa-Lg-Gr4"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="yKa-4T-uSh" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="e8g-a1-oOs" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1234.3511450381679" y="-88.028169014084511"/>
+            <point key="canvasLocation" x="-879" y="-24"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
@@ -45,7 +36,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="48" y="-2"/>
+            <point key="canvasLocation" x="113" y="-2"/>
         </scene>
     </scenes>
     <resources>
