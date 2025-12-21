@@ -206,7 +206,7 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" image="doc.text.fill" catalog="system" id="mGG-DN-whp">
+                                                <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" image="text.document.fill" catalog="system" id="mGG-DN-whp">
                                                     <rect key="frame" x="20.333333333333336" y="11.333333333333336" width="23.333333333333332" height="27"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <preferredSymbolConfiguration key="preferredSymbolConfiguration" scale="large"/>
@@ -558,13 +558,13 @@ support@quickfix.com</string>
         </scene>
     </scenes>
     <resources>
-        <image name="doc.text.fill" catalog="system" width="115" height="128"/>
         <image name="flag.fill" catalog="system" width="128" height="121"/>
         <image name="gearshape" catalog="system" width="128" height="123"/>
         <image name="pencil.line" catalog="system" width="128" height="117"/>
         <image name="person.3.sequence.fill" catalog="system" width="128" height="63"/>
         <image name="person.crop.circle.fill" catalog="system" width="128" height="123"/>
         <image name="shield.fill" catalog="system" width="121" height="128"/>
+        <image name="text.document.fill" catalog="system" width="115" height="128"/>
         <systemColor name="labelColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
