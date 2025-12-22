@@ -31,13 +31,62 @@
                     <view key="view" contentMode="scaleToFill" id="Ysj-52-wrD">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jah-b5-XPS">
+                                <rect key="frame" x="0.0" y="80" width="393" height="44"/>
+                                <color key="backgroundColor" red="0.15686274509803921" green="0.27058823529411763" blue="0.3529411764705882" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="barTintColor" red="0.10588235294117647" green="0.1764705882352941" blue="0.396078431372549" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <textAttributes key="titleTextAttributes">
+                                    <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </textAttributes>
+                                <items>
+                                    <navigationItem title="My Tasks" id="kFN-Rf-AyG"/>
+                                </items>
+                            </navigationBar>
+                            <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ex8-kd-jUJ">
+                                <rect key="frame" x="16" y="188" width="361" height="216"/>
+                                <subviews>
+                                    <pickerView hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icE-eP-bYu">
+                                        <rect key="frame" x="0.0" y="0.0" width="0.0" height="216"/>
+                                    </pickerView>
+                                    <button opaque="NO" contentMode="scaleToFill" showsMenuAsPrimaryAction="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="kqO-po-jDh">
+                                        <rect key="frame" x="0.0" y="0.0" width="361" height="216"/>
+                                        <menu key="menu" title="Tasks" id="IQt-bO-Kz6">
+                                            <children>
+                                                <command title="Task 1" id="uty-RY-c9e"/>
+                                                <command title="Task 2" id="5hM-Zd-PTe"/>
+                                            </children>
+                                        </menu>
+                                        <state key="normal" title="Tasks"/>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Accepted Tasks" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AcV-u9-vtv">
+                                <rect key="frame" x="16" y="166" width="133.66666666666666" height="27"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="19"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="YU4-Kp-5KG"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="AcV-u9-vtv" firstAttribute="leading" secondItem="ex8-kd-jUJ" secondAttribute="leading" id="0AK-As-QJJ"/>
+                            <constraint firstAttribute="trailing" secondItem="jah-b5-XPS" secondAttribute="trailing" id="DPI-AM-ueg"/>
+                            <constraint firstItem="AcV-u9-vtv" firstAttribute="top" secondItem="jah-b5-XPS" secondAttribute="bottom" constant="42" id="FEg-3M-ZeU"/>
+                            <constraint firstItem="YU4-Kp-5KG" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="AcV-u9-vtv" secondAttribute="trailing" symbolic="YES" id="WXY-Jj-2Xb"/>
+                            <constraint firstItem="YU4-Kp-5KG" firstAttribute="bottom" secondItem="AcV-u9-vtv" secondAttribute="bottom" constant="591" id="cHL-Sz-2we"/>
+                            <constraint firstItem="jah-b5-XPS" firstAttribute="centerX" secondItem="ex8-kd-jUJ" secondAttribute="centerX" id="trh-Hf-jLv"/>
+                            <constraint firstItem="ex8-kd-jUJ" firstAttribute="top" secondItem="jah-b5-XPS" secondAttribute="bottom" constant="64" id="twc-Ea-8PA"/>
+                            <constraint firstItem="jah-b5-XPS" firstAttribute="leading" secondItem="Ysj-52-wrD" secondAttribute="leading" id="vgu-ic-Avr"/>
+                            <constraint firstItem="YU4-Kp-5KG" firstAttribute="bottom" secondItem="ex8-kd-jUJ" secondAttribute="bottom" constant="380" id="vvk-qo-58b"/>
+                            <constraint firstItem="AcV-u9-vtv" firstAttribute="leading" secondItem="Ysj-52-wrD" secondAttribute="leadingMargin" id="zmj-WP-gut"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="OOe-GP-zgD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1317" y="-733"/>
+            <point key="canvasLocation" x="1316.793893129771" y="-733.09859154929586"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="bUz-lS-DVP">
@@ -112,8 +161,8 @@
                             </label>
                             <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="evd-OK-eov">
                                 <rect key="frame" x="0.0" y="52" width="393" height="44"/>
-                                <color key="backgroundColor" red="0.0" green="0.1016280228" blue="0.39607840779999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                <color key="barTintColor" red="0.1061503859" green="0.17778227930000001" blue="0.39607840779999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" red="0.15686274509803921" green="0.27058823529411763" blue="0.3529411764705882" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="barTintColor" red="0.10588235294117647" green="0.1764705882352941" blue="0.396078431372549" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <textAttributes key="titleTextAttributes">
                                     <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </textAttributes>
@@ -148,7 +197,7 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6ta-HY-ZD5">
                                 <rect key="frame" x="81" y="664" width="231" height="38"/>
-                                <color key="tintColor" red="0.10615038592718098" green="0.17778227931159674" blue="0.39607840779999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="tintColor" red="0.15686274509803921" green="0.27058823529411763" blue="0.3529411764705882" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Submit"/>
                             </button>
