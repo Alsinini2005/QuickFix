@@ -23,7 +23,7 @@
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="taA-Ko-Aox" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1332" y="-560"/>
+            <point key="canvasLocation" x="-3682" y="-323"/>
         </scene>
         <!--Setting Navigator-->
         <scene sceneID="QiU-yl-Qwx">
@@ -34,7 +34,7 @@
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="7Od-T3-0RD">
                         <rect key="frame" x="0.0" y="124" width="402" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <color key="backgroundColor" red="0.083777929520000002" green="0.19554235819999999" blue="0.40453849870000003" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" red="0.18823529780000001" green="0.26666668059999998" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <textAttributes key="titleTextAttributes">
                             <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="18"/>
@@ -48,12 +48,12 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ba6-pe-kUJ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-483.20610687022901" y="-561.26760563380287"/>
+            <point key="canvasLocation" x="-2833" y="-324"/>
         </scene>
         <!--Settings-->
         <scene sceneID="OuJ-FA-fNu">
             <objects>
-                <tableViewController id="es0-et-0yx" customClass="SettingsViewController" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="SettingsTableViewController" id="es0-et-0yx" customClass="SettingsTableViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="default" rowHeight="50" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="s0J-pd-v1K">
                         <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -68,7 +68,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="402" height="70"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="XP0-xF-me1">
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="XP0-xF-me1" customClass="sett">
                                                     <rect key="frame" x="60.666666666666671" y="16.333333333333336" width="42.666666666666664" height="19.333333333333332"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
@@ -233,6 +233,9 @@
                                                     <color key="backgroundColor" systemColor="systemRedColor"/>
                                                     <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <buttonConfiguration key="configuration" style="plain" title="Log Out"/>
+                                                    <connections>
+                                                        <action selector="logoutTapped:" destination="es0-et-0yx" eventType="touchUpInside" id="MGO-dL-uTs"/>
+                                                    </connections>
                                                 </button>
                                             </subviews>
                                             <constraints>
@@ -253,10 +256,14 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Settings" id="ybT-cF-nbA"/>
+                    <connections>
+                        <outlet property="nameLabel" destination="XP0-xF-me1" id="ZUT-dZ-uAH"/>
+                        <outlet property="userTypeLabel" destination="xou-eF-9Hk" id="Chl-Tx-v17"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="j0V-1q-14t" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="377.86259541984731" y="-561.26760563380287"/>
+            <point key="canvasLocation" x="-1972" y="-324"/>
         </scene>
         <!--Edit Profile-->
         <scene sceneID="uzW-s4-8rC">
@@ -473,7 +480,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="s6r-p8-Qnk" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1308.955223880597" y="-1174.599542334096"/>
+            <point key="canvasLocation" x="-1040" y="-937"/>
         </scene>
         <!--Privacy Policy-->
         <scene sceneID="rQZ-CZ-Vmg">
@@ -505,7 +512,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="h6S-If-0U1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1283.5820895522388" y="-507.3226544622425"/>
+            <point key="canvasLocation" x="-1066" y="-270"/>
         </scene>
         <!--Terms of Services-->
         <scene sceneID="Izr-Fq-coY">
@@ -554,7 +561,7 @@ support@quickfix.com</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0mN-hb-BdP" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1284" y="194"/>
+            <point key="canvasLocation" x="-1066" y="431"/>
         </scene>
     </scenes>
     <resources>
