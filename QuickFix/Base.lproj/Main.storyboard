@@ -8,19 +8,22 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Table View Controller-->
+        <!--Login-->
         <scene sceneID="tai-cp-MIp">
             <objects>
-                <tableViewController id="Ysd-ve-aPl" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="LoginTableViewController" title="Login" id="Ysd-ve-aPl" customClass="LoginTableViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="none" allowsSelection="NO" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="leh-4g-EU0">
                         <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <sections>
                             <tableViewSection id="cUR-BA-hdB">
+                                <cells/>
+                            </tableViewSection>
+                            <tableViewSection id="527-K0-Abl">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" rowHeight="207" id="qwo-OV-oca">
-                                        <rect key="frame" x="20" y="18" width="362" height="207"/>
+                                        <rect key="frame" x="20" y="54" width="362" height="207"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="qwo-OV-oca" id="7f7-Kn-WYc">
                                             <rect key="frame" x="0.0" y="0.0" width="362" height="207"/>
@@ -63,10 +66,6 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                </cells>
-                            </tableViewSection>
-                            <tableViewSection id="527-K0-Abl">
-                                <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="90" id="I6d-Bo-Twl">
                                         <rect key="frame" x="20" y="261" width="362" height="90"/>
                                         <autoresizingMask key="autoresizingMask"/>
@@ -140,6 +139,9 @@
                                                     <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <state key="normal" title="Button"/>
                                                     <buttonConfiguration key="configuration" style="plain" title="Login"/>
+                                                    <connections>
+                                                        <action selector="loginButtonTapped:" destination="Ysd-ve-aPl" eventType="touchUpInside" id="kpT-kr-q5k"/>
+                                                    </connections>
                                                 </button>
                                             </subviews>
                                             <constraints>
@@ -158,6 +160,10 @@
                             <outlet property="delegate" destination="Ysd-ve-aPl" id="wIG-lV-KQH"/>
                         </connections>
                     </tableView>
+                    <connections>
+                        <outlet property="emailTextField" destination="JgJ-7L-sfv" id="3kY-yz-51c"/>
+                        <outlet property="passwordTextField" destination="co4-fh-LhO" id="b73-Ur-Gmv"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ogu-zN-uyu" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -180,10 +186,10 @@
             </objects>
             <point key="canvasLocation" x="-3682" y="-323"/>
         </scene>
-        <!--Setting Navigator-->
+        <!--Settings Navigator-->
         <scene sceneID="QiU-yl-Qwx">
             <objects>
-                <navigationController title="Setting Navigator" automaticallyAdjustsScrollViewInsets="NO" id="mNw-e6-nye" sceneMemberID="viewController">
+                <navigationController title="Settings Navigator" automaticallyAdjustsScrollViewInsets="NO" id="mNw-e6-nye" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Settings" image="gearshape" catalog="system" id="lIx-ib-rw4"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="7Od-T3-0RD">
