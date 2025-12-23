@@ -7,6 +7,7 @@
 
 import UIKit
 
+
 struct Technician {
     var image : UIImage
     var userID : String
@@ -22,22 +23,49 @@ var arrTechnicians = [
     Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1002", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9876543211"),
     Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1003", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "9876543212"),
     Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1004", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "9876543213"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1005", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "9876543214"),
+    
+    
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1001", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "9876543210"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1002", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9876543211"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1003", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "9876543212"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1004", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "9876543213"),
     Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1005", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "9876543214")
 ]
+
+
+extension UIImageView {
+    func makeCircular() {
+        layoutIfNeeded()
+        layer.masksToBounds = true
+        layer.cornerRadius = bounds.height / 2
+        contentMode = .scaleAspectFill
+    }
+}
+
+extension UILabel {
+    func applySoftBorder() {
+        layer.cornerRadius = 5
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
+        clipsToBounds = true
+    }
+}
+
+extension UITextField {
+    func applySoftBorder(){
+        layer.cornerRadius = 8
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
+        clipsToBounds = true    }
+}
 
 class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var TechnicianTableView : UITableView!
     
     
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        TechnicianTableView.dataSource = self
-        TechnicianTableView.delegate = self
-        print("viewDidLoad called")
-        
-        
-    }
+
  
     override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
@@ -46,6 +74,13 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
             print("Feature9_1 reloaded")
         }
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        TechnicianTableView.delegate = self
+        TechnicianTableView.dataSource = self
+    }
+
     
     func  tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return arrTechnicians.count
@@ -59,11 +94,15 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
         cell.lblName.text = technicianData.name
         cell.lblEmail.text = technicianData.email
         
+
+
+        
         print(technicianData.name)
         return cell
     }
     
-        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
             print(arrTechnicians[indexPath.row])
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let vc = storyboard.instantiateViewController(withIdentifier: "Feature9_2") as! Feature9_2
@@ -79,25 +118,23 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
 class TechnicianTableViewCell: UITableViewCell {
     
     @IBOutlet weak var imgProfilePhoto : UIImageView!
-    @IBOutlet weak var lblName : UILabel!
-    @IBOutlet weak var lblEmail : UILabel!
-
+    @IBOutlet weak var lblName: UILabel!
+    @IBOutlet weak var lblEmail: UILabel!
+    
     
     
     override func awakeFromNib() {
         super.awakeFromNib()
-            
-            imgProfilePhoto.contentMode = .scaleAspectFill
-            imgProfilePhoto.clipsToBounds = true // important to prevent image overflow
-            imgProfilePhoto.layer.cornerRadius = imgProfilePhoto.frame.height / 2 // makes it circular if square
+        imgProfilePhoto.contentMode = .scaleAspectFill
+        imgProfilePhoto.clipsToBounds = true
+    }
 
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        imgProfilePhoto.layer.cornerRadius = imgProfilePhoto.frame.height / 2
     }
     
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
 }
 
 
@@ -105,12 +142,15 @@ class TechnicianTableViewCell: UITableViewCell {
 
 class Feature9_2 : UIViewController {
 
-    @IBOutlet weak var imgTechnicianPhoto: UIImageView!
+    @IBOutlet weak var imgProfilePhoto: UIImageView!
     @IBOutlet weak var lblUserID: UILabel!
     @IBOutlet weak var lblFullName: UILabel!
     @IBOutlet weak var lblEmailAddress: UILabel!
     @IBOutlet weak var lblPassword: UILabel!
     @IBOutlet weak var lblPhoneNumber: UILabel!
+    @IBAction func btnEdit(_ sender: Any) {
+    }
+    
     
     var technician: Technician?
     var technicianIndex : Int?
@@ -122,20 +162,35 @@ class Feature9_2 : UIViewController {
 
            technician = arrTechnicians[index]
 
-           imgTechnicianPhoto.image = technician?.image
-           lblUserID.text = technician?.userID
+           imgProfilePhoto.image = technician?.image
+           lblUserID.text = (technician?.userID)
            lblFullName.text = technician?.name
            lblEmailAddress.text = technician?.email
            lblPassword.text = technician?.password
            lblPhoneNumber.text = "+973 \(technician?.phoneNumber ?? "")"
        }
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
-    
+        
+        lblUserID.applySoftBorder()
+        lblFullName.applySoftBorder()
+        lblEmailAddress.applySoftBorder()
+        lblPassword.applySoftBorder()
+        lblPhoneNumber.applySoftBorder()
+        
         print("Feature9_2")
 
     }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        imgProfilePhoto.makeCircular()
+    }
+
+
+    
+
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "editTechnicianSegue" {
@@ -145,10 +200,8 @@ class Feature9_2 : UIViewController {
         }
     }
 
+    
         
-    @IBAction func btnEdit(_ sender: Any) {
-
-    }
 }
 
 
@@ -161,7 +214,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
     @IBOutlet weak var txtEmailAddress: UITextField!
     @IBOutlet weak var txtPassword: UITextField!
     @IBOutlet weak var txtPhoneNumber: UITextField!
-    @IBOutlet weak var btnSaveChanges: UIButton!
+    
     
     var technician: Technician?
     var technicianIndex: Int?
@@ -177,16 +230,33 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             txtPhoneNumber.text = (tech.phoneNumber)
         }
         
+        
+        txtUserID.applySoftBorder()
+        txtFullName.applySoftBorder()
+        txtEmailAddress.applySoftBorder()
+        txtEmailAddress.applySoftBorder()
+        txtPassword.applySoftBorder()
+        txtPhoneNumber.applySoftBorder()
+        
         print("Feature9_3")
     }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        imgProfilePhoto.makeCircular()
+    }
+
+    func imagePickerController(
+        _ picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
+    ) {
         if let editedImage = info[.editedImage] as? UIImage {
             imgProfilePhoto.image = editedImage
         } else if let originalImage = info[.originalImage] as? UIImage {
             imgProfilePhoto.image = originalImage
         }
-        picker.dismiss(animated: true, completion: nil)
+
+        imgProfilePhoto.makeCircular()   // ⭐ CRITICAL
+        picker.dismiss(animated: true)
     }
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
@@ -217,7 +287,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             return
         }
         
-        // If all fields are filled, update the data
         if let index = technicianIndex {
             arrTechnicians[index] = Technician(
                 image: imgProfilePhoto.image ?? UIImage(),
@@ -246,7 +315,8 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
     
     @IBOutlet weak var btnAddTechnician: UIButton!
     
-    
+   
+
     override func viewDidLoad() {
         super.viewDidLoad()
         txtUserID.delegate = self
@@ -264,10 +334,22 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         txtFullName.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtEmailAddress.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtPhoneNumber.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
+        
+        
+        txtUserID.applySoftBorder()
+        txtFullName.applySoftBorder()
+        txtEmailAddress.applySoftBorder()
+        txtPhoneNumber.applySoftBorder()
+        
         print("Feature9_4")
 
     }
-    
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        imgProfilePhoto.makeCircular()
+    }
+
     @objc func textDidChange() {
         let allFilled =
             !(txtUserID.text?.isEmpty ?? true) &&
@@ -301,7 +383,6 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
             navigationController?.popViewController(animated: true)
 
     }
-    
     
         
 }
