@@ -675,7 +675,9 @@
                         </connections>
                     </tableView>
                     <tabBarItem key="tabBarItem" title="DAshboard" selectedImage="house.fill" catalog="system" id="UlD-F8-6lX"/>
-                    <navigationItem key="navigationItem" title="Dashboard" id="nmP-WR-IyS"/>
+                    <navigationItem key="navigationItem" title="Dashboard" id="nmP-WR-IyS">
+                        <barButtonItem key="rightBarButtonItem" image="bell.fill" catalog="system" id="b48-IT-hQx"/>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Jba-j8-nez" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -763,6 +765,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="bell.fill" catalog="system" width="123" height="128"/>
         <image name="document.fill" catalog="system" width="115" height="128"/>
         <image name="house.fill" catalog="system" width="128" height="104"/>
         <image name="list.bullet.clipboard.fill" catalog="system" width="98" height="128"/>

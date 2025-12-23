@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CC2330AC2EDD7EC90031D5DC /* QuickFix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = QuickFix.app; path = "/Users/bp-36-201-07/Desktop/202201922/QuickFix/build/Debug-iphoneos/QuickFix.app"; sourceTree = "<absolute>"; };
+		DBAE72682EFAA98E009443EB /* QuickFix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickFix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -46,6 +46,7 @@
 			isa = PBXGroup;
 			children = (
 				CC2330AE2EDD7EC90031D5DC /* QuickFix */,
+				DBAE72682EFAA98E009443EB /* QuickFix.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -71,7 +72,7 @@
 			packageProductDependencies = (
 			);
 			productName = QuickFix;
-			productReference = CC2330AC2EDD7EC90031D5DC /* QuickFix.app */;
+			productReference = DBAE72682EFAA98E009443EB /* QuickFix.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
