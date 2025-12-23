@@ -4,7 +4,7 @@
 //
 //  Created by BP-36-212-03 on 23/12/2025.
 //
-
+import FirebaseAuth
 import UIKit
 
 class LoginTableViewController: UITableViewController {
@@ -22,15 +22,13 @@ class LoginTableViewController: UITableViewController {
 
      guard let email = emailTextField.text, !email.isEmpty else
     {
-     showAlert(title: "Missing Email", message: "Please
-    enter your email address.")
+         showAlert(title: "Missing Email", message: "Please enter your email address.")
      return
      }
 
      guard let password = passwordTextField.text,
     !password.isEmpty else {
-     showAlert(title: "Missing Password", message: "Please
-    enter your password.")
+         showAlert(title: "Missing Password", message: "Please enter your password.")
      return
      }
 
