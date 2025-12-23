@@ -17,17 +17,6 @@ class LoginTableViewController: UITableViewController {
     
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
-    @IBAction func loginButtonTapped(_ sender: UIButton) {
-     // Login logic will be implemented here
-    }
-    
-    func showAlert(title: String, message: String) {
-     let alert = UIAlertController(title: title, message:
-    message, preferredStyle: .alert)
-     alert.addAction(UIAlertAction(title: "OK", style:
-    .default))
-     present(alert, animated: true)
-    }
     
     @IBAction func loginButtonTapped(_ sender: UIButton) {
 
@@ -61,6 +50,15 @@ class LoginTableViewController: UITableViewController {
     sender)
      }
     }
+    
+    func showAlert(title: String, message: String) {
+     let alert = UIAlertController(title: title, message:
+    message, preferredStyle: .alert)
+     alert.addAction(UIAlertAction(title: "OK", style:
+    .default))
+     present(alert, animated: true)
+    }
+    
     /*
     // MARK: - Navigation
 
