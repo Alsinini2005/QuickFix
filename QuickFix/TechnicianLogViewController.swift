@@ -14,7 +14,7 @@ final class TechnicianLogViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = "Log Page"
+        title = "Log Inventory"
         view.backgroundColor = .systemBackground
 
         allInventory = DataStore.shared.loadInventory()

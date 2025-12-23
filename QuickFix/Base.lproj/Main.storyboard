@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="ftm-Le-yeZ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="sXX-KK-pPK">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
@@ -8,7 +8,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Log Page-->
+        <!--Log Invnetory-->
         <scene sceneID="3gb-KI-7Yf">
             <objects>
                 <viewController id="IPJ-D0-rle" customClass="TechnicianLogViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
@@ -25,12 +25,12 @@
                                 </connections>
                             </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="StT-78-kLD">
-                                <rect key="frame" x="0.0" y="254" width="393" height="327"/>
+                                <rect key="frame" x="0.0" y="254" width="393" height="393"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PsY-A2-sYh">
-                                <rect key="frame" x="162" y="626" width="69" height="39"/>
+                                <rect key="frame" x="102" y="674.66666666666663" width="189" height="38.333333333333371"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="Button"/>
@@ -45,7 +45,8 @@
                         <viewLayoutGuide key="safeArea" id="dEe-wv-RnW"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Log Page" id="Iid-qs-Afa"/>
+                    <tabBarItem key="tabBarItem" title="Item" id="3Qf-I1-XPH"/>
+                    <navigationItem key="navigationItem" title="Log Invnetory" id="Iid-qs-Afa"/>
                     <connections>
                         <outlet property="searchBar" destination="BMd-Af-dMO" id="PAF-P2-8Se"/>
                         <outlet property="tableView" destination="StT-78-kLD" id="5JZ-z2-BbY"/>
@@ -53,12 +54,11 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Umk-1u-DwW" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1403.8167938931297" y="-577.46478873239437"/>
+            <point key="canvasLocation" x="2330.5343511450383" y="-577.46478873239437"/>
         </scene>
-        <!--Inventory Update-->
+        <!--Inventory Managment-->
         <scene sceneID="7wi-jP-hPt">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="jLP-jV-yLg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <viewController id="z30-Zs-3Ua" customClass="AdminInventoryViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="D4a-KM-qp6">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
@@ -91,7 +91,7 @@
                                 <buttonConfiguration key="configuration" style="gray" title="Generate Monthly Report"/>
                                 <connections>
                                     <action selector="generateTapped:" destination="z30-Zs-3Ua" eventType="touchUpInside" id="dcw-kl-1O6"/>
-                                    <segue destination="VNn-7f-Br4" kind="show" identifier="showReportr" id="9Er-2w-ixM"/>
+                                    <segue destination="VNn-7f-Br4" kind="showDetail" identifier="showReport" id="tfh-Nb-AAm"/>
                                 </connections>
                             </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="x4L-sE-Skt">
@@ -100,7 +100,7 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YpX-x5-gKr">
-                                <rect key="frame" x="157" y="642" width="80" height="39"/>
+                                <rect key="frame" x="115" y="651" width="165" height="39"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="tintColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
@@ -114,20 +114,23 @@
                         <viewLayoutGuide key="safeArea" id="nXs-mg-zvR"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Inventory Update" id="ymb-H4-CQv"/>
+                    <tabBarItem key="tabBarItem" title="Inventory Managment" id="EDz-UA-ItT"/>
+                    <navigationItem key="navigationItem" title="Inventory Managment" id="ymb-H4-CQv"/>
                     <connections>
                         <outlet property="monthPicker" destination="GFX-jY-TeO" id="tQj-hh-tFt"/>
                         <outlet property="tableView" destination="x4L-sE-Skt" id="OhE-SP-7IC"/>
                         <outlet property="yearField" destination="hcK-jK-AQp" id="zs7-aQ-n1F"/>
                     </connections>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="jLP-jV-yLg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="391.60305343511448" y="207.74647887323945"/>
+            <point key="canvasLocation" x="1316.793893129771" y="207.74647887323945"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Inventory Managment-->
         <scene sceneID="cmi-c2-dCi">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="ftm-Le-yeZ" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Inventory Managment" id="9Rt-dc-SmC"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="rFQ-X2-fc1">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
@@ -139,33 +142,33 @@
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="z30-Zs-3Ua" kind="relationship" relationship="rootViewController" id="f5c-oS-FOE"/>
+                        <segue destination="z30-Zs-3Ua" kind="relationship" relationship="rootViewController" id="HGe-YU-IXt"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="O41-hV-hoN" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-695" y="208"/>
+            <point key="canvasLocation" x="-124" y="208"/>
         </scene>
         <!--Report View Controller-->
         <scene sceneID="86c-46-654">
             <objects>
                 <viewController id="VNn-7f-Br4" customClass="ReportViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="eSg-nP-9G8">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Summary Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8Lc-9R-xZx">
-                                <rect key="frame" x="99" y="208" width="195" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="29"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="kF2-UC-eU6">
                                 <rect key="frame" x="28" y="303" width="336" height="336"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </tableView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Summary Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8Lc-9R-xZx">
+                                <rect key="frame" x="54" y="150" width="285" height="126"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="29"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="eKI-6E-ggb"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -178,12 +181,13 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KVu-LQ-pbj" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1448.0916030534352" y="207.74647887323945"/>
+            <point key="canvasLocation" x="2374.8091603053435" y="207.74647887323945"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Log Inventory-->
         <scene sceneID="oJh-sI-IkX">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="44t-Mb-ESD" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Log Inventory" id="00T-x1-u8a"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="gvS-d9-jtz">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
@@ -198,15 +202,53 @@
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="IPJ-D0-rle" kind="relationship" relationship="rootViewController" id="zOj-oq-EYh"/>
+                        <segue destination="IPJ-D0-rle" kind="relationship" relationship="rootViewController" id="ka2-Zi-kdX"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cgC-mO-f2n" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="477.09923664122135" y="-577.46478873239437"/>
+            <point key="canvasLocation" x="1071" y="-585"/>
+        </scene>
+        <!--Tab Bar Controller-->
+        <scene sceneID="3up-N4-KZp">
+            <objects>
+                <tabBarController automaticallyAdjustsScrollViewInsets="NO" id="sXX-KK-pPK" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" id="CFq-Bg-hh1"/>
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionIndicatorImage="cube.box" catalog="system" id="Gax-YW-TZh">
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="44t-Mb-ESD" kind="relationship" relationship="viewControllers" id="HUq-us-L4e"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DvL-vz-bba" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-123" y="-585"/>
+        </scene>
+        <!--Tab Bar Controller-->
+        <scene sceneID="BXh-bO-vym">
+            <objects>
+                <tabBarController automaticallyAdjustsScrollViewInsets="NO" id="gGm-ZC-Apd" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" id="irp-2W-yGV"/>
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionIndicatorImage="newspaper" catalog="system" id="rF7-8q-snD">
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="ftm-Le-yeZ" kind="relationship" relationship="viewControllers" id="Ap6-nx-ljn"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="rSI-10-Onc" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1410" y="208"/>
         </scene>
     </scenes>
     <resources>
+        <image name="cube.box" catalog="system" width="128" height="123"/>
+        <image name="newspaper" catalog="system" width="128" height="111"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
