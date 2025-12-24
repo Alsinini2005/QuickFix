@@ -7,7 +7,6 @@
 
 import UIKit
 
-
 struct Technician {
     var image : UIImage
     var userID : String
@@ -36,7 +35,7 @@ var arrTechnicians = [
 
 extension UIImageView {
     func makeCircular() {
-        layoutIfNeeded()
+       // layoutIfNeeded()
         layer.masksToBounds = true
         layer.cornerRadius = bounds.height / 2
         contentMode = .scaleAspectFill
@@ -180,13 +179,21 @@ class Feature9_2 : UIViewController {
         lblPassword.applySoftBorder()
         lblPhoneNumber.applySoftBorder()
         
+        imgProfilePhoto.layer.cornerRadius = 50
+        
+        
+//        imgProfilePhoto.clipsToBounds = true
         print("Feature9_2")
 
     }
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        imgProfilePhoto.makeCircular()
-    }
+   
+//    override func viewDidLayoutSubviews() {
+//        super.viewDidLayoutSubviews()
+//
+//        imgProfilePhoto.layer.cornerRadius = imgProfilePhoto.frame.height / 2
+//        imgProfilePhoto.clipsToBounds = true
+//    }
+
 
 
     
@@ -224,7 +231,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         if let tech = technician {
             imgProfilePhoto.image = tech.image
             txtUserID.text = tech.userID
-            txtFullName.text = tech.name
+            txtFullName.text = (tech.name)
             txtEmailAddress.text = tech.email
             txtPassword.text = tech.password
             txtPhoneNumber.text = (tech.phoneNumber)
