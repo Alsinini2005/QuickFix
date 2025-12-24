@@ -13,7 +13,7 @@
         <scene sceneID="WBD-Cm-vHZ">
             <objects>
                 <navigationController id="d97-K8-yaq" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="My Request" image="line.horizontal.3" catalog="system" id="hli-fU-ZUQ"/>
+                    <tabBarItem key="tabBarItem" title="My Request" image="line.horizontal.3" catalog="system" selectedImage="line.3.horizontal" id="hli-fU-ZUQ"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="Th1-DT-etR">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -57,8 +57,11 @@
                             <outlet property="delegate" destination="V1z-z5-njm" id="DgA-j8-mhS"/>
                         </connections>
                     </tableView>
-                    <tabBarItem key="tabBarItem" title="My Request" image="line.horizontal.3" catalog="system" id="QOk-ih-heO"/>
+                    <tabBarItem key="tabBarItem" title="My Request" image="line.horizontal.3" catalog="system" selectedImage="line.3.horizontal" id="QOk-ih-heO"/>
                     <navigationItem key="navigationItem" id="8bt-7M-S4W"/>
+                    <connections>
+                        <outlet property="tableView" destination="NQh-Pw-9VR" id="gfp-Le-yPf"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="VEa-qe-6mp" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -336,11 +339,17 @@
                                         </constraints>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="gray" title="Create New Request"/>
+                                        <connections>
+                                            <segue destination="alI-2o-yOg" kind="show" id="pcX-gB-QGJ"/>
+                                        </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9hz-ep-8rl">
                                         <rect key="frame" x="64" y="121" width="265" height="39"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="tinted" title="View Recent Request"/>
+                                        <connections>
+                                            <segue destination="V1z-z5-njm" kind="show" id="CMN-Ev-Lf1"/>
+                                        </connections>
                                     </button>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Quick Actions " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ub3-ed-aCj">
                                         <rect key="frame" x="31" y="14" width="126" height="21"/>
@@ -362,7 +371,7 @@
                                     <constraint firstItem="9hz-ep-8rl" firstAttribute="leading" secondItem="vs8-UD-tcr" secondAttribute="leading" constant="64" id="avc-Ud-wqj"/>
                                     <constraint firstItem="9hz-ep-8rl" firstAttribute="top" secondItem="BUe-ij-Kx2" secondAttribute="bottom" constant="15" id="dQH-oo-mgq"/>
                                     <constraint firstAttribute="trailing" secondItem="ub3-ed-aCj" secondAttribute="trailing" constant="236" id="hJU-29-FTt"/>
-                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="BUe-ij-Kx2" secondAttribute="trailing" symbolic="YES" id="rcn-Zm-kgh"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="BUe-ij-Kx2" secondAttribute="trailing" constant="20" symbolic="YES" id="rcn-Zm-kgh"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -408,9 +417,14 @@
             <point key="canvasLocation" x="-1929" y="-161"/>
         </scene>
     </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="pcX-gB-QGJ"/>
+        <segue reference="CMN-Ev-Lf1"/>
+    </inferredMetricsTieBreakers>
     <resources>
         <image name="bell.fill" catalog="system" width="123" height="128"/>
         <image name="house.fill" catalog="system" width="128" height="104"/>
+        <image name="line.3.horizontal" catalog="system" width="128" height="65"/>
         <image name="line.horizontal.3" catalog="system" width="128" height="65"/>
         <image name="plus.app" catalog="system" width="128" height="114"/>
         <systemColor name="labelColor">
