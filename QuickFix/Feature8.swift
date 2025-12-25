@@ -21,6 +21,31 @@ struct TicketDetails {
 
 
 extension UILabel {
+    
+    
+    func setColoredText(
+            fullText: String,
+            prefix: String,
+            prefixColor: UIColor,
+            valueColor: UIColor
+        ) {
+            let attributedText = NSMutableAttributedString(
+                string: fullText,
+                attributes: [.foregroundColor: valueColor]
+            )
+
+            if let range = fullText.range(of: prefix) {
+                let nsRange = NSRange(range, in: fullText)
+                attributedText.addAttribute(
+                    .foregroundColor,
+                    value: prefixColor,
+                    range: nsRange
+                )
+            }
+
+            self.attributedText = attributedText
+        }
+    
     func applyAboveSoftBorder() {
         layer.cornerRadius = 5
         layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
@@ -68,6 +93,15 @@ class Feature8: UIViewController {
     
     var ticket = TicketDetails(ticketID: "#245", name: "Wi‑Fi outage on 3rd floor", location: "Building A", issue: "Network Failure", status: "Assigned",  urgency: "Low", createdAt: "25-5-2025" )
     
+    let prefixColor = UIColor(
+        red: 40/255,
+        green: 69/255,
+        blue: 90/255,
+        alpha: 1
+    )
+    let valueColor = UIColor.darkGray
+
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -76,18 +110,63 @@ class Feature8: UIViewController {
         //            return
         //        }
         
+        
         lblTicketID.applyAboveSoftBorder()
         lblCreatedAt.applyUnderSoftBorder()
         lblTechnician.applySoftBorder()
         lblEscalationReason.applySoftBorder()
         
-        lblTicketID.text = "Ticket ID: \(ticket.ticketID)"
-        lblName.text = "Ticket Name: \(ticket.name)"
-        lblIssue.text = "Issue: \(ticket.issue)"
-        lblLocation.text = "Location: \(ticket.location)"
-        lblStatus.text = "Status: \(ticket.status)"
-        lblUrgency.text = "Urgency: \(ticket.urgency)"
-        lblCreatedAt.text = "Created: \(ticket.createdAt)"
+
+        lblTicketID.setColoredText(
+            fullText: "Ticket ID: \(ticket.ticketID)",
+            prefix: "Ticket ID:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        lblName.setColoredText(
+            fullText: "Ticket Name: \(ticket.name)",
+            prefix: "Ticket Name:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        lblIssue.setColoredText(
+            fullText: "Issue: \(ticket.issue)",
+            prefix: "Issue:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        lblLocation.setColoredText(
+            fullText: "Location: \(ticket.location)",
+            prefix: "Location:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        lblStatus.setColoredText(
+            fullText: "Status: \(ticket.status)",
+            prefix: "Status:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        lblUrgency.setColoredText(
+            fullText: "Urgency: \(ticket.urgency)",
+            prefix: "Urgency:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        lblCreatedAt.setColoredText(
+            fullText: "Created: \(ticket.createdAt)",
+            prefix: "Created:",
+            prefixColor: prefixColor,
+            valueColor: valueColor
+        )
+
+        
         lblTechnician.text = "Jack"
         lblEscalationReason.text = "Fixing the need to format the device so all users information will be removed "
         
