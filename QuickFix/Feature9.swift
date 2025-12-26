@@ -25,6 +25,23 @@ var arrTechnicians = [
     Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1005", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "9876543214"),
 
 ]
+extension UITableView {
+
+    func applySoftBorder(
+        cornerRadius: CGFloat = 8,
+        borderWidth: CGFloat = 1,
+        borderColor: UIColor = UIColor.lightGray.withAlphaComponent(0.35)
+    ) {
+        layer.cornerRadius = cornerRadius
+        layer.borderWidth = borderWidth
+        layer.borderColor = borderColor.cgColor
+        clipsToBounds = true
+    }
+    
+    
+}
+
+
 
 
 extension UILabel {
@@ -42,52 +59,77 @@ extension UITextField {
         layer.borderWidth = 1
         layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
         clipsToBounds = true    }
+    func addLeftPadding(_ padding: CGFloat) {
+            let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: padding, height: self.frame.height))
+            self.leftView = paddingView
+            self.leftViewMode = .always
+        }
 }
 
 class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var TechnicianTableView : UITableView!
     @IBOutlet weak var txtSearch: UITextField!
-    @IBAction func btnSearch(_ sender: Any) {
-        
-        let searchText = txtSearch.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
-           if searchText.isEmpty {
-               isSearching = false
-               filteredTechnicians.removeAll()
-           } else {
-               isSearching = true
-               filteredTechnicians = arrTechnicians.filter {
-                   $0.name.lowercased().contains(searchText.lowercased()) ||
-                   $0.email.lowercased().contains(searchText.lowercased()) ||
-                   $0.userID.lowercased().contains(searchText.lowercased()) ||
-                   $0.phoneNumber.contains(searchText)
-               }
-           }
-
-           TechnicianTableView.reloadData()
+    @IBOutlet weak var tableHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var btnAddTechnician: UIButton!
+    private func updateTableHeight() {
+        TechnicianTableView.layoutIfNeeded()
+        tableHeightConstraint.constant = TechnicianTableView.contentSize.height
     }
     
-    var filteredTechnicians: [Technician] = []
+    var filteredIndexes: [Int] = []
+  
     var isSearching = false
 
+ 
     
+   
     @objc func textDidChange(_ textField: UITextField) {
         btnSearch(textField)
     }
 
  
     override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
+        super.viewWillAppear(animated)
+
+            if isSearching {
+                let searchText = txtSearch.text?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+                filteredIndexes = arrTechnicians.enumerated().compactMap { index, tech in
+                    tech.name.lowercased().contains(searchText.lowercased()) ||
+                    tech.email.lowercased().contains(searchText.lowercased()) ||
+                    tech.userID.lowercased().contains(searchText.lowercased()) ||
+                    tech.phoneNumber.contains(searchText)
+                    ? index : nil
+                }
+            }
 
             TechnicianTableView.reloadData()
-            print("Feature9_1 reloaded")
-        }
+            updateTableHeight()
+    }
+    
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateTableHeight()
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        TechnicianTableView.reloadData()
+        TechnicianTableView.applySoftBorder()
         TechnicianTableView.delegate = self
         TechnicianTableView.dataSource = self
+        
+        
+        
+        TechnicianTableView.backgroundColor = .clear
+        TechnicianTableView.tableFooterView = UIView(frame: .zero)
+        TechnicianTableView.alwaysBounceVertical = false
+        TechnicianTableView.applySoftBorder(cornerRadius: 10)
+        
+        
+        
         
         txtSearch.addTarget(self, action: #selector(textDidChange(_:)), for: .editingChanged)
 
@@ -95,38 +137,85 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
 
     
     func  tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return isSearching ? filteredTechnicians.count : arrTechnicians.count
+        return isSearching ? filteredIndexes.count : arrTechnicians.count
     }
     
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "technicianCell") as! TechnicianTableViewCell
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-            let technician = isSearching
-                ? filteredTechnicians[indexPath.row]
-                : arrTechnicians[indexPath.row]
-
-            cell.imgProfilePhoto.image = technician.image
-            cell.lblName.text = technician.name
-            cell.lblEmail.text = technician.email
-
-            return cell
-    }
-    
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-           
-        let technician = isSearching
-            ? filteredTechnicians[indexPath.row]
-            : arrTechnicians[indexPath.row]
-
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "Feature9_2") as! Feature9_2
-        vc.technician = technician
-
-        self.navigationController?.pushViewController(vc, animated: true)
-    
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: "technicianCell",
+            for: indexPath
+        ) as? TechnicianTableViewCell else {
+            return UITableViewCell()
         }
+
+        // Resolve the REAL index
+        let technicianIndex: Int
+        if isSearching {
+            technicianIndex = filteredIndexes[indexPath.row]
+        } else {
+            technicianIndex = indexPath.row
+        }
+
+        let technician = arrTechnicians[technicianIndex]
+
+        // Configure cell
+        cell.imgProfilePhoto.image = technician.image
+        cell.lblName.text = technician.name
+        cell.lblEmail.text = technician.email
+
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "showTechnicianDetailsSegue", sender: indexPath)
+    }
+
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showTechnicianDetailsSegue",
+           let vc = segue.destination as? Feature9_2,
+           let indexPath = sender as? IndexPath {
+
+            // Resolve the REAL index in arrTechnicians
+            let technicianIndex: Int
+            if isSearching {
+                technicianIndex = filteredIndexes[indexPath.row]
+            } else {
+                technicianIndex = indexPath.row
+            }
+
+            // Pass correct data
+            vc.technicianIndex = technicianIndex
+            vc.technician = arrTechnicians[technicianIndex]
+        }
+    }
+
+    
+    @IBAction func btnSearch(_ sender: Any) {
+        let searchText = txtSearch.text?
+               .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+           if searchText.isEmpty {
+               isSearching = false
+               filteredIndexes.removeAll()
+           } else {
+               isSearching = true
+               filteredIndexes = arrTechnicians.enumerated().compactMap { index, tech in
+                   tech.name.lowercased().contains(searchText.lowercased()) ||
+                   tech.email.lowercased().contains(searchText.lowercased()) ||
+                   tech.userID.lowercased().contains(searchText.lowercased()) ||
+                   tech.phoneNumber.contains(searchText)
+                   ? index : nil
+               }
+           }
+
+           TechnicianTableView.reloadData()
+           updateTableHeight()
+     }
+ 
     
     
 }
@@ -165,6 +254,12 @@ class Feature9_2 : UIViewController {
     @IBOutlet weak var lblPassword: UILabel!
     @IBOutlet weak var lblPhoneNumber: UILabel!
     @IBAction func btnEdit(_ sender: Any) {
+        print("Using Edit button...")
+//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//            let vc = storyboard.instantiateViewController(withIdentifier: "Feature9_3") as! Feature9_3
+//            vc.technician = technician
+//            vc.technicianIndex = technicianIndex  // ← You might have forgotten this line!
+//            self.navigationController?.pushViewController(vc, animated: true)
     }
     
     
@@ -175,21 +270,27 @@ class Feature9_2 : UIViewController {
            super.viewWillAppear(animated)
 
            guard let index = technicianIndex else { return }
+            technician = arrTechnicians[index]
+            updateUI()
 
-           technician = arrTechnicians[index]
-
-            imgProfilePhoto.image = technician?.image
-            lblUserID.text = technician?.userID
-            lblFullName.text = technician?.name
-            lblEmailAddress.text = technician?.email
-            lblPassword.text = technician?.password
-            lblPhoneNumber.text = "+973 \(technician?.phoneNumber ?? "")"
        }
 
+    func updateUI() {
+        guard let tech = technician else { return }
+
+        imgProfilePhoto.image = tech.image
+        lblUserID.text = tech.userID
+        lblFullName.text = tech.name
+        lblEmailAddress.text = tech.email
+        lblPassword.text = tech.password
+        lblPhoneNumber.text = tech.password
+    }
     
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        
+        
         imgProfilePhoto.contentMode = .scaleAspectFill
         imgProfilePhoto.layer.cornerRadius = imgProfilePhoto.frame.width / 2
         imgProfilePhoto.clipsToBounds = true
@@ -197,7 +298,16 @@ class Feature9_2 : UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        imgProfilePhoto.image = technician?.image
+        
+        
+         imgProfilePhoto.image = technician?.image
+         lblUserID.text = technician?.userID
+         lblFullName.text = technician?.name
+         lblEmailAddress.text = technician?.email
+         lblPassword.text = technician?.password
+         lblPhoneNumber.text = "+973 \(technician?.phoneNumber ?? "")"
+        print("F2\nIs? \(technicianIndex)\nNot? \(technician)")
+
         lblUserID.applySoftBorder()
         lblFullName.applySoftBorder()
         lblEmailAddress.applySoftBorder()
@@ -232,12 +342,17 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
     @IBOutlet weak var txtPassword: UITextField!
     @IBOutlet weak var txtPhoneNumber: UITextField!
     
-    
     var technician: Technician?
     var technicianIndex: Int?
     
-    override func viewDidLoad() {
+    	    override func viewDidLoad() {
         super.viewDidLoad()
+        txtUserID.addLeftPadding(5)
+        txtFullName.addLeftPadding(5)
+        txtEmailAddress.addLeftPadding(5)
+        txtPassword.addLeftPadding(5)
+        txtPhoneNumber.addLeftPadding(5)
+
         if let tech = technician {
             imgProfilePhoto.image = tech.image
             txtUserID.text = tech.userID
@@ -248,6 +363,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         }
         
         
+                print("F3\nIs? \(technicianIndex)\nNot? \(technician)")
         txtUserID.applySoftBorder()
         txtFullName.applySoftBorder()
         txtEmailAddress.applySoftBorder()
@@ -277,8 +393,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         picker.dismiss(animated: true, completion: nil)
     }
     
-    
-    @IBAction func btnAddPhoto(_ sender: Any) {
+    @IBAction func btnEditPhoto(_ sender: Any) {
         let picker = UIImagePickerController()
         picker.delegate = self
         picker.sourceType = .photoLibrary
@@ -286,7 +401,9 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         present(picker, animated: true, completion: nil)
     }
     
+    
     @IBAction func btnSaveChanges(_ sender: Any) {
+        print("checking...")
         guard
             let userID = txtUserID.text, !userID.isEmpty,
             let name = txtFullName.text, !name.isEmpty,
@@ -300,22 +417,28 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             self.present(alert, animated: true)
             return
         }
+        print("technicianIndex=\(technicianIndex)")
         
-        if let index = technicianIndex {
-            arrTechnicians[index] = Technician(
-                image: imgProfilePhoto.image ?? UIImage(),
-                userID: userID,
-                name: name,
-                email: email,
-                password: password,
-                phoneNumber: phone
-            )
-            print("Editing \(arrTechnicians[index])")
-            navigationController?.popViewController(animated: true)
-        }
-        
+        guard let index = technicianIndex else {  let alert = UIAlertController(title: "Error", message: "Unable to save changes. Technician data is missing.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+            return }
+         arrTechnicians[index] = Technician(
+                        image: imgProfilePhoto.image ?? UIImage(),
+                        userID: userID,
+                        name: name,
+                        email: email,
+                        password: password,
+                        phoneNumber: phone
+                    )
+                    print("Editing \(arrTechnicians[index])")
+                    navigationController?.popViewController(animated: true)
+                
         
     }
+        
+        
+    
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -354,12 +477,14 @@ class CircularImageView: UIImageView {
 }
 
 
+
 class Feature9_4 : UIViewController, UITextFieldDelegate {
         
     @IBOutlet weak var imgProfilePhoto: UIImageView!
     @IBOutlet weak var txtUserID: UITextField!
     @IBOutlet weak var txtFullName: UITextField!
     @IBOutlet weak var txtEmailAddress: UITextField!
+    @IBOutlet weak var txtPassword : UITextField!
     @IBOutlet weak var txtPhoneNumber: UITextField!
     
     @IBOutlet weak var btnAddTechnician: UIButton!
