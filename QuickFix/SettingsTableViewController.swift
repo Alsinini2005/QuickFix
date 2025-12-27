@@ -16,6 +16,8 @@ final class SettingsTableViewController: UITableViewController {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var userTypeLabel: UILabel!
 
+    private var currentUserType: String = "user"
+    
     private let db = Firestore.firestore()
 
     override func viewDidLoad() {
@@ -25,7 +27,7 @@ final class SettingsTableViewController: UITableViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        loadUserInfo() // refresh when coming back from Edit Profile
+        loadUserInfo()
     }
 
     private func loadUserInfo() {
@@ -37,19 +39,55 @@ final class SettingsTableViewController: UITableViewController {
 
         db.collection("users").document(uid).getDocument { [weak self] snap, error in
             guard let self = self else { return }
+
             if let error = error {
                 print("Firestore error:", error.localizedDescription)
                 return
             }
 
             let data = snap?.data() ?? [:]
-            let fullName = data["fullName"] as? String ?? "No Name"
-            let userType = data["userType"] as? String ?? "User"
+
+            let fullName = data["name"] as? String ?? "No Name"
+            let userType = (data["usertype"] as? String ?? "user").capitalized
 
             DispatchQueue.main.async {
                 self.nameLabel.text = fullName
                 self.userTypeLabel.text = userType
+                
+                self.currentUserType = userType
+                self.tableView.reloadData()
             }
+        }
+    }
+    private var isAdmin: Bool { currentUserType == "Admin" }
+
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if section == 1 && !isAdmin { return nil }   // Preference section
+        return super.tableView(tableView, titleForHeaderInSection: section)
+    }
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if section == 1 && !isAdmin { return nil }
+        return super.tableView(tableView, viewForHeaderInSection: section)
+    }
+
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if section == 1 && !isAdmin { return CGFloat.leastNormalMagnitude }
+        return super.tableView(tableView, heightForHeaderInSection: section)
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.section == 1 && !isAdmin { return 0 }
+        return super.tableView(tableView, heightForRowAt: indexPath)
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.section == 1 && !isAdmin {
+            cell.isHidden = true
+            cell.isUserInteractionEnabled = false
+        } else {
+            cell.isHidden = false
+            cell.isUserInteractionEnabled = true
         }
     }
 
@@ -71,7 +109,20 @@ final class SettingsTableViewController: UITableViewController {
     private func doLogout() {
         do {
             try Auth.auth().signOut()
-            navigationController?.popToRootViewController(animated: true)
+
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let loginVC = storyboard.instantiateViewController(
+                withIdentifier: "LoginTableViewController"
+            )
+
+            loginVC.modalPresentationStyle = .fullScreen
+
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                window.rootViewController = loginVC
+                window.makeKeyAndVisible()
+            }
+
         } catch {
             let alert = UIAlertController(
                 title: "Error",
@@ -82,4 +133,5 @@ final class SettingsTableViewController: UITableViewController {
             present(alert, animated: true)
         }
     }
+
 }

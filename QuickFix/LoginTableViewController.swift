@@ -13,7 +13,7 @@ class LoginTableViewController: UITableViewController {
     
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
-    
+
     @IBOutlet weak var emailErrorLabel: UILabel!
     @IBOutlet weak var passwordErrorLabel: UILabel!
 
@@ -83,32 +83,36 @@ class LoginTableViewController: UITableViewController {
             }
 
             guard let data = snapshot?.data(),
-                  let userType = data["userType"] as? String else {
+                  let usertype = data["usertype"] as? String else {
                 self?.showAlert(title: "Error", message: "User type not found")
                 return
             }
 
-            self?.routeUser(by: userType, sender: sender)
+            self?.routeUser(by: usertype)
         }
     }
 
-    private func routeUser(by userType: String, sender: UIButton) {
+    private func routeUser(by userType: String) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
 
+        let vcID: String
         switch userType.lowercased() {
-
         case "admin":
-            performSegue(withIdentifier: "AdminFlow", sender: sender)
-
+            vcID = "AdminFlow"
         case "technician":
-            performSegue(withIdentifier: "TechnicianFlow", sender: sender)
-
+            vcID = "TechnicianFlow"
         case "user":
-            performSegue(withIdentifier: "UserFlow", sender: sender)
-
+            vcID = "UserFlow"
         default:
-            showAlert(title: "Error", message: "Unknown user type")
+            showAlert(title: "Error", message: "Unknown user type: \(userType)")
+            return
         }
+
+        let vc = storyboard.instantiateViewController(withIdentifier: vcID)
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
     }
+
 
     private func handleAuthError(_ error: NSError) {
 
