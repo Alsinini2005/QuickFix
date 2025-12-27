@@ -27,7 +27,7 @@ final class MonthlyReportListViewController: UIViewController {
     }
 
     deinit { listener?.remove() }
-
+    
     // MARK: - UI
 
     private func setupNavBar() {
