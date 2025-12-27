@@ -18,17 +18,17 @@ struct Technician {
 }
 
 var arrTechnicians = [
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1001", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "9876543210"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1002", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9876543211"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1003", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "9876543212"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1004", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "9876543213"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "#1005", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "9876543214"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
+    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
 
 ]
 extension UITableView {
 
     func applySoftBorder(
-        cornerRadius: CGFloat = 8,
+        cornerRadius: CGFloat = 10,
         borderWidth: CGFloat = 1,
         borderColor: UIColor = UIColor.lightGray.withAlphaComponent(0.35)
     ) {
@@ -46,8 +46,8 @@ extension UITableView {
 
 extension UILabel {
     func applySoftBorder() {
-        layer.cornerRadius = 5
-        layer.borderWidth = 1
+        layer.cornerRadius = 10
+        layer.borderWidth = 0
         layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
         clipsToBounds = true
     }
@@ -55,8 +55,8 @@ extension UILabel {
 
 extension UITextField {
     func applySoftBorder(){
-        layer.cornerRadius = 8
-        layer.borderWidth = 1
+        layer.cornerRadius = 10
+        layer.borderWidth = 0
         layer.borderColor = UIColor.lightGray.withAlphaComponent(0.35).cgColor
         clipsToBounds = true    }
     func addLeftPadding(_ padding: CGFloat) {
@@ -90,7 +90,6 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
  
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
             if isSearching {
                 let searchText = txtSearch.text?
                     .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -121,8 +120,8 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
         TechnicianTableView.delegate = self
         TechnicianTableView.dataSource = self
         
-        
-        
+        txtSearch.applySoftBorder()
+
         TechnicianTableView.backgroundColor = .clear
         TechnicianTableView.tableFooterView = UIView(frame: .zero)
         TechnicianTableView.alwaysBounceVertical = false
@@ -283,8 +282,7 @@ class Feature9_2 : UIViewController {
         lblFullName.text = tech.name
         lblEmailAddress.text = tech.email
         lblPassword.text = tech.password
-        lblPhoneNumber.text = tech.password
-    }
+        lblPhoneNumber.text = "+937 \(tech.phoneNumber)"    }
     
     
     override func viewDidLayoutSubviews() {
@@ -300,12 +298,12 @@ class Feature9_2 : UIViewController {
         super.viewDidLoad()
         
         
-         imgProfilePhoto.image = technician?.image
-         lblUserID.text = technician?.userID
-         lblFullName.text = technician?.name
-         lblEmailAddress.text = technician?.email
-         lblPassword.text = technician?.password
-         lblPhoneNumber.text = "+973 \(technician?.phoneNumber ?? "")"
+//         imgProfilePhoto.image = technician?.image
+//         lblUserID.text = technician?.userID
+//         lblFullName.text = technician?.name
+//         lblEmailAddress.text = technician?.email
+//         lblPassword.text = technician?.password
+//         lblPhoneNumber.text = "+973 \(technician?.phoneNumber)"
         print("F2\nIs? \(technicianIndex)\nNot? \(technician)")
 
         lblUserID.applySoftBorder()
@@ -374,24 +372,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         print("Feature9_3")
     }
     
-    func imagePickerController(
-        _ picker: UIImagePickerController,
-        didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
-    ) {
-        if let editedImage = info[.editedImage] as? UIImage {
-            imgProfilePhoto.image = editedImage
-        } else if let originalImage = info[.originalImage] as? UIImage {
-            imgProfilePhoto.image = originalImage
-        }
-        
-        picker.dismiss(animated: true)
-    }
-    
-    
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true, completion: nil)
-    }
     
     @IBAction func btnEditPhoto(_ sender: Any) {
         let picker = UIImagePickerController()
@@ -423,6 +403,12 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
             return }
+        
+        guard let phone = txtPhoneNumber.text,
+                 isValidBahrainPhone(phone) else {
+               showAlert("Phone number must be 8 digits")
+               return
+           }
          arrTechnicians[index] = Technician(
                         image: imgProfilePhoto.image ?? UIImage(),
                         userID: userID,
@@ -436,9 +422,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
                 
         
     }
-        
-        
-    
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -447,6 +430,39 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         imgProfilePhoto.clipsToBounds = true
     }
     
+
+    func imagePickerController(
+        _ picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
+    ) {
+        if let editedImage = info[.editedImage] as? UIImage {
+            imgProfilePhoto.image = editedImage
+        } else if let originalImage = info[.originalImage] as? UIImage {
+            imgProfilePhoto.image = originalImage
+        }
+        
+        picker.dismiss(animated: true)
+    }
+        
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
+    
+    func isValidBahrainPhone(_ phone: String) -> Bool {
+        let regex = "^\\d{8}$"
+        return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: phone)
+    }
+
+    
+    func showAlert(_ message: String) {
+        let alert = UIAlertController(title: "Invalid Input",
+                                      message: message,
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
     
 }
 
@@ -474,6 +490,8 @@ class CircularImageView: UIImageView {
         }
     }
     
+    
+    
 }
 
 
@@ -489,7 +507,8 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
     
     @IBOutlet weak var btnAddTechnician: UIButton!
     
-   
+    var userID = String(UUID().uuidString.prefix(8))
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -498,13 +517,14 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         txtEmailAddress.delegate = self
         txtPhoneNumber.delegate = self
         
-        imgProfilePhoto.image = UIImage(named: "imgProfilePhoto")!
-         
+        txtUserID.text = userID
         
+        txtPhoneNumber.keyboardType = .numberPad
+
+        imgProfilePhoto.image = UIImage(named: "imgProfilePhoto")!
         
         
         btnAddTechnician.isHidden = true   // or isEnabled = false
-        imgProfilePhoto.alpha.round()
             // Listen for text changes
         txtUserID.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtFullName.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
@@ -540,6 +560,32 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
     }
     
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        view.endEditing(true)
+    }
+    
+    @IBAction func btnAddTechnician(_ sender: Any) {
+        guard let phone = txtPhoneNumber.text,
+                 isValidBahrainPhone(phone) else {
+               showAlert("Phone number must be 8 digits")
+               return
+           }
+
+           arrTechnicians.append(
+               Technician(
+                   image: UIImage(named: "imgProfilePhoto")!,
+                   userID: txtUserID.text!,
+                   name: txtFullName.text!,
+                   email: txtEmailAddress.text!,
+                   password: nil,
+                   phoneNumber: phone   // Stored as String
+               )
+           )
+
+           navigationController?.popViewController(animated: true)
+
+    }
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == txtUserID {
             txtFullName.becomeFirstResponder()
@@ -551,15 +597,20 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         return true
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        view.endEditing(true)
+    func isValidBahrainPhone(_ phone: String) -> Bool {
+        let regex = "^\\d{8}$"
+        return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: phone)
     }
-    
-    @IBAction func btnAddTechnician(_ sender: Any) {
-        arrTechnicians.append(Technician.init(image: UIImage(named: "imgProfilePhoto")!, userID: txtUserID.text! , name: txtFullName.text!, email: txtEmailAddress.text!, password: nil, phoneNumber: txtPhoneNumber.text!))
-            navigationController?.popViewController(animated: true)
 
+    
+    func showAlert(_ message: String) {
+        let alert = UIAlertController(title: "Invalid Input",
+                                      message: message,
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
+
     
         
 }
