@@ -21,7 +21,7 @@ final class DashboardViewController: UIViewController {
 
     // MARK: - UI
     private func styleCards() {
-        view.backgroundColor = .systemBackground
+       
 
         applyCardStyle(pendingCardView)
         applyCardStyle(onProcessCardView)
