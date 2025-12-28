@@ -125,61 +125,54 @@ final class MyRequestsViewController: UIViewController {
     private func startListening() {
         listener?.remove()
 
-        guard let uid = Auth.auth().currentUser?.uid else {
+        guard let authUid = Auth.auth().currentUser?.uid else {
             rows = []
             tableView.reloadData()
             return
         }
 
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             do {
-                // 1) Get numeric userId from users/{uid}
-                let snap = try await db.collection("users").document(uid).getDocument()
-                guard let data = snap.data() else {
-                    await MainActor.run {
-                        self.rows = []
-                        self.tableView.reloadData()
-                    }
-                    return
-                }
+                // Your requests collection uses numeric userId.
+                let numericUserId = try await self.fetchNumericUserId(authUid: authUid)
 
-                let numericUserId: Int
-                if let n = data["userId"] as? Int { numericUserId = n }
-                else if let n = data["userId"] as? Int64 { numericUserId = Int(n) }
-                else if let n = data["userId"] as? Double { numericUserId = Int(n) }
-                else {
-                    throw NSError(domain: "User", code: 0,
-                                  userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users/{uid}."])
-                }
-
-                // 2) Listen using NUMBER userId
                 self.listener = self.db.collection("requests")
                     .whereField("userId", isEqualTo: numericUserId)
                     .order(by: "createdAt", descending: true)
                     .addSnapshotListener { [weak self] snap, err in
-                        guard let self else { return }
+                guard let self else { return }
 
-                        if let err {
-                            print("MyRequests listen error:", err)
-                            return
-                        }
+                if let err {
+                    print("MyRequests listen error:", err)
+                    return
+                }
 
-                        guard let snap else { return }
+                guard let snap else { return }
 
                         self.rows = snap.documents.compactMap { RequestRow.from(doc: $0) }
                         DispatchQueue.main.async { self.tableView.reloadData() }
                     }
 
             } catch {
-                await MainActor.run {
-                    print("Failed to fetch numeric userId:", error)
-                    self.rows = []
-                    self.tableView.reloadData()
-                }
+                print("Failed to read numeric userId:", error)
+                self.rows = []
+                DispatchQueue.main.async { self.tableView.reloadData() }
             }
         }
     }
 
+    /// Reads numeric userId from Firestore: users/{authUid}.userId
+    private func fetchNumericUserId(authUid: String) async throws -> Int {
+        let snap = try await db.collection("users").document(authUid).getDocument()
+        let data = snap.data() ?? [:]
+
+        if let n = data["userId"] as? Int { return n }
+        if let n = data["userId"] as? Int64 { return Int(n) }
+        if let n = data["userId"] as? Double { return Int(n) }
+
+        throw NSError(domain: "User", code: 0, userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users collection."])
+    }
 
     // MARK: - Cell UI
 

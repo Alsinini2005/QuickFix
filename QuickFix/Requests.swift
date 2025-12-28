@@ -2,33 +2,13 @@
 //  Requests.swift
 //  QuickFix
 //
-//  Add New Request screen (Firestore)
-//  ✅ Campus is a UIButton (ActionSheet picker)
-//  ✅ userId is stored as NUMBER in requests
-//     - We fetch numeric userId from: users/{firebaseUid}.userId
-//  ✅ status = "pending"
-//  ✅ createdAt = Timestamp(date: Date())
-//  ✅ Optional image picker (NO Cloudinary / NO external upload)
-//
-//  Firestore required structure:
-//  users (collection)
-//    {uid} (document id = Firebase Auth uid string)
-//      userId : Int   <-- MUST EXIST
-//
-//  requests (collection)
-//    autoId
-//      userId : Int
-//      title : String
-//      campus : String
-//      building : Int
-//      classroom : Int
-//      problemDescription : String
-//      status : String
-//      createdAt : Timestamp
-//      imageUrl : String? (optional)
-//
-//  NOTE: This file only picks an image locally. It does NOT upload it anywhere.
-//  If you want image upload later, tell me and we’ll do Firebase Storage.
+//  Add New Request screen
+//  ✅ Campus is a UIButton (picker via ActionSheet)
+//  ✅ Submit saves to Firestore so it appears in MyRequestsViewController
+//     - userId = Auth uid
+//     - status = "pending"
+//     - createdAt = Timestamp(date: Date())
+//  ✅ Optional image upload to Cloudinary (only if configured)
 //
 
 import UIKit
@@ -38,14 +18,21 @@ import FirebaseFirestore
 final class Requests: UIViewController {
 
     // MARK: - Outlets (connect in storyboard)
-    @IBOutlet weak var campusTextField: UIButton!
+
+    @IBOutlet weak var campusTextField: UIButton!          // Button title shows selected campus
     @IBOutlet weak var buildingTextField: UITextField!
     @IBOutlet weak var classroomTextField: UITextField!
-    @IBOutlet weak var descriptionTextView: UITextField!
-    @IBOutlet weak var previewImageView: UIImageView? // optional
+    @IBOutlet weak var descriptionTextView: UITextField!   // if you want multiline, change storyboard to UITextView
+    @IBOutlet weak var previewImageView: UIImageView?      // optional
 
     // MARK: - Campus options
+    // As requested: ( Campus A - Campus B - Dilmonia )
     private let campusOptions = ["Campus A", "Campus B", "Dilmonia"]
+
+    // MARK: - Cloudinary (OPTIONAL)
+    // Leave as default if not using Cloudinary.
+    private let cloudName = "YOUR_CLOUD_NAME"
+    private let uploadPreset = "YOUR_UNSIGNED_PRESET"
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
@@ -66,7 +53,7 @@ final class Requests: UIViewController {
             campusTextField.setTitle("Select Campus", for: .normal)
         }
 
-        // preview image styling
+        // image preview styling
         previewImageView?.contentMode = .scaleAspectFill
         previewImageView?.layer.cornerRadius = 12
         previewImageView?.layer.masksToBounds = true
@@ -81,30 +68,8 @@ final class Requests: UIViewController {
         view.endEditing(true)
     }
 
-    // MARK: - Get numeric userId (REQUIRED)
-    // Reads: users/{uid}.userId (Int)
-    private func fetchNumericUserId() async throws -> Int {
-        guard let uid = Auth.auth().currentUser?.uid else {
-            throw NSError(domain: "Auth", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "Please login first."])
-        }
-
-        let snap = try await db.collection("users").document(uid).getDocument()
-        guard let data = snap.data() else {
-            throw NSError(domain: "User", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "User profile not found in Firestore (users/{uid})."])
-        }
-
-        // Sometimes numbers come back as Int, sometimes as Int64 / Double depending on how written.
-        if let n = data["userId"] as? Int { return n }
-        if let n = data["userId"] as? Int64 { return Int(n) }
-        if let n = data["userId"] as? Double { return Int(n) }
-
-        throw NSError(domain: "User", code: 0,
-                      userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found. Add users/{uid}.userId (Number)."])
-    }
-
     // MARK: - Campus (UIButton)
+
     @IBAction func campusButtonTapped(_ sender: UIButton) {
         let sheet = UIAlertController(title: "Select Campus", message: nil, preferredStyle: .actionSheet)
 
@@ -125,41 +90,58 @@ final class Requests: UIViewController {
         present(sheet, animated: true)
     }
 
-    // MARK: - Submit
+    // MARK: - Actions
+
     @IBAction func submitButtonTapped(_ sender: UIButton) {
         sender.isEnabled = false
         view.isUserInteractionEnabled = false
 
         Task {
             do {
-                // 1) fetch numeric userId
-                let numericUserId = try await fetchNumericUserId()
+                guard let uid = Auth.auth().currentUser?.uid else {
+                    await MainActor.run {
+                        sender.isEnabled = true
+                        self.view.isUserInteractionEnabled = true
+                        self.showAlert(title: "Error", message: "Please login first.")
+                    }
+                    return
+                }
 
-                // 2) read inputs
-                let campus = (campusTextField.title(for: .normal) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                let buildingText = (buildingTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                let classroomText = (classroomTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                let desc = (descriptionTextView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                // Your Firestore schema uses userId as a NUMBER.
+                // We read it from: users/{authUid}.userId
+                let numericUserId = try await fetchNumericUserId(authUid: uid)
 
-                // 3) validate + convert building/classroom to Int
-                let building = try parseNumberField(buildingText, fieldName: "Building")
-                let classroom = try parseNumberField(classroomText, fieldName: "Classroom")
-                try validate(campus: campus, desc: desc)
+                let campus = campusTextField.title(for: .normal) ?? ""
+                let buildingText = buildingTextField.text ?? ""
+                let classroomText = classroomTextField.text ?? ""
+                let desc = descriptionTextView.text ?? ""
 
-                // 4) Save to Firestore
+                let building = try parseIntField(buildingText, fieldName: "Building")
+                let classroom = try parseIntField(classroomText, fieldName: "Classroom")
+
+                try validate(campus: campus, building: building, classroom: classroom, desc: desc)
+
+                // Optional image upload
+                let imageUrl: String? = try await uploadToCloudinaryIfConfigured(image: pickedImage)
+
+                // Save request (matches MyRequestsViewController expected fields)
                 try await saveToFirestore(
                     userId: numericUserId,
                     campus: campus,
                     building: building,
                     classroom: classroom,
                     desc: desc,
-                    imageUrl: nil // no upload in this version
+                    imageUrl: imageUrl
                 )
 
                 await MainActor.run {
                     sender.isEnabled = true
                     self.view.isUserInteractionEnabled = true
+
+                    // Go back so user sees it appear in My Requests (listener will update)
                     self.navigationController?.popViewController(animated: true)
+                    // If presented modally instead:
+                    // self.dismiss(animated: true)
                 }
 
             } catch {
@@ -172,34 +154,28 @@ final class Requests: UIViewController {
         }
     }
 
-    // MARK: - Upload image (LOCAL PICK ONLY)
     @IBAction func uploadImageTapped(_ sender: UIButton) {
         presentImagePicker()
     }
 
-    // MARK: - Validation helpers
+    // MARK: - Validation
 
-    private func validate(campus: String, desc: String) throws {
-        let campusIsValid = !campus.isEmpty && campus != "Select Campus"
-        guard campusIsValid, !desc.isEmpty else {
-            throw NSError(domain: "Validation", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "Please fill all fields before submitting."])
+    private func validate(campus: String, building: Int, classroom: Int, desc: String) throws {
+        let campusT = campus.trimmingCharacters(in: .whitespacesAndNewlines)
+        let descT = desc.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let campusIsValid = !campusT.isEmpty && campusT != "Select Campus"
+
+        guard campusIsValid, building > 0, classroom > 0, !descT.isEmpty else {
+            throw NSError(
+                domain: "Validation",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "Please fill all fields before submitting."]
+            )
         }
     }
 
-    private func parseNumberField(_ text: String, fieldName: String) throws -> Int {
-        guard !text.isEmpty else {
-            throw NSError(domain: "Validation", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "\(fieldName) is required."])
-        }
-        guard let n = Int(text) else {
-            throw NSError(domain: "Validation", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "\(fieldName) must be a number."])
-        }
-        return n
-    }
-
-    // MARK: - Firestore save
+    // MARK: - Firestore
 
     private func saveToFirestore(
         userId: Int,
@@ -210,19 +186,74 @@ final class Requests: UIViewController {
         imageUrl: String?
     ) async throws {
 
+        // NOTE:
+        // MyRequestsViewController uses "title", "status", "createdAt", "userId"
+        // Here we use the description as title because your UI doesn't have a separate title field.
+        // If you later add a "titleTextField", set "title" to that field instead.
         let payload: [String: Any] = [
-            "userId": userId,                       // ✅ NUMBER
-            "title": desc,                          // used in MyRequests list (you can add a title field later)
-            "campus": campus,
-            "building": building,                   // ✅ NUMBER
-            "classroom": classroom,                 // ✅ NUMBER
-            "problemDescription": desc,
+            "userId": userId,
+            "title": desc.trimmingCharacters(in: .whitespacesAndNewlines),
+            "campus": campus.trimmingCharacters(in: .whitespacesAndNewlines),
+            "building": building,
+            "classroom": classroom,
+            "problemDescription": desc.trimmingCharacters(in: .whitespacesAndNewlines),
             "imageUrl": imageUrl as Any,
             "status": "pending",
             "createdAt": Timestamp(date: Date())
         ]
 
         try await db.collection("requests").addDocument(data: payload)
+    }
+
+    // MARK: - Cloudinary (optional)
+
+    private func uploadToCloudinaryIfConfigured(image: UIImage?) async throws -> String? {
+        // no image selected
+        guard let image else { return nil }
+
+        // not configured -> skip upload
+        if cloudName == "YOUR_CLOUD_NAME" || uploadPreset == "YOUR_UNSIGNED_PRESET" {
+            return nil
+        }
+
+        guard let data = image.jpegData(compressionQuality: 0.85) else {
+            throw NSError(domain: "Cloudinary", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "Failed to encode image."])
+        }
+
+        let url = URL(string: "https://api.cloudinary.com/v1_1/\(cloudName)/image/upload")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+
+        // preset
+        body.append("--\(boundary)\r\n")
+        body.append("Content-Disposition: form-data; name=\"upload_preset\"\r\n\r\n")
+        body.append("\(uploadPreset)\r\n")
+
+        // file
+        body.append("--\(boundary)\r\n")
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n")
+        body.append("Content-Type: image/jpeg\r\n\r\n")
+        body.append(data)
+        body.append("\r\n")
+        body.append("--\(boundary)--\r\n")
+
+        request.httpBody = body
+
+        let (respData, resp) = try await URLSession.shared.data(for: request)
+        guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let msg = String(data: respData, encoding: .utf8) ?? "Cloudinary upload failed"
+            throw NSError(domain: "Cloudinary", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: msg])
+        }
+
+        struct CloudinaryResponse: Decodable { let secure_url: String }
+        return try JSONDecoder().decode(CloudinaryResponse.self, from: respData).secure_url
     }
 
     // MARK: - Image Picker
@@ -240,12 +271,42 @@ final class Requests: UIViewController {
         present(picker, animated: true)
     }
 
-    // MARK: - Alert
+    // MARK: - Helpers
 
     private func showAlert(title: String, message: String) {
         let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
         present(a, animated: true)
+    }
+
+    // MARK: - Helpers (numeric fields)
+
+    private func parseIntField(_ text: String, fieldName: String) throws -> Int {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let n = Int(trimmed), n > 0 else {
+            throw NSError(
+                domain: "Validation",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "\(fieldName) must be a number."]
+            )
+        }
+        return n
+    }
+
+    /// Reads numeric userId from Firestore: users/{authUid}.userId
+    private func fetchNumericUserId(authUid: String) async throws -> Int {
+        let snap = try await db.collection("users").document(authUid).getDocument()
+        let data = snap.data() ?? [:]
+
+        if let n = data["userId"] as? Int { return n }
+        if let n = data["userId"] as? Int64 { return Int(n) }
+        if let n = data["userId"] as? Double { return Int(n) }
+
+        throw NSError(
+            domain: "User",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users collection."]
+        )
     }
 }
 
@@ -265,5 +326,12 @@ extension Requests: UIImagePickerControllerDelegate, UINavigationControllerDeleg
         let img = (info[.editedImage] as? UIImage) ?? (info[.originalImage] as? UIImage)
         pickedImage = img
         previewImageView?.image = img
+    }
+}
+
+// MARK: - Data helper
+private extension Data {
+    mutating func append(_ string: String) {
+        self.append(string.data(using: .utf8)!)
     }
 }
