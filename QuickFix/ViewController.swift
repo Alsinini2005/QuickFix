@@ -1,10 +1,13 @@
 import UIKit
-
+import FirebaseFirestore
 final class TechnicianTasksViewController: UIViewController {
 
 @IBOutlet private weak var tableView: UITableView!
 @IBOutlet private weak var acceptButton: UIButton!
 @IBOutlet private weak var rejectButton: UIButton!
+    
+    
+    
 
 // Initial tasks (title + details)
 private let initialTasks: [(title: String, details: String)] = [
@@ -23,24 +26,29 @@ private let initialTasks: [(title: String, details: String)] = [
 private var tasks: [(title: String, details: String)] = []
 private var selectedTasks = Set<Int>()
 
-override func viewDidLoad() {
-super.viewDidLoad()
+    override func viewDidLoad() {
+        super.viewDidLoad()
 
-view.backgroundColor = .systemBackground
+        
+        tasks = initialTasks
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.reloadData()
 
-tasks = initialTasks
+       
+        let db = Firestore.firestore()
+        db.collection("test").addDocument(data: [
+            "message": "Firebase connected ✅",
+            "createdAt": Timestamp(date: Date())
+        ]) { error in
+            if let error = error {
+                print("❌ Firestore error:", error)
+            } else {
+                print("✅ Firestore write success")
+            }
+        }
+    }
 
-tableView.dataSource = self
-tableView.delegate = self
-tableView.tableFooterView = UIView()
-tableView.rowHeight = UITableView.automaticDimension
-tableView.estimatedRowHeight = 72
-
-acceptButton.layer.cornerRadius = 12
-rejectButton.layer.cornerRadius = 12
-
-updateButtonsState()
-}
 
 // MARK: - Actions
 

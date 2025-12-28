@@ -17,11 +17,11 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="Yqo-9o-928">
-                                <rect key="frame" x="0.0" y="161.99999999999997" width="393" height="480.33333333333326"/>
+                                <rect key="frame" x="0.0" y="162" width="393" height="498"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GuD-b5-agD">
-                                <rect key="frame" x="16" y="692.33333333333337" width="90" height="40"/>
+                                <rect key="frame" x="16" y="695" width="90" height="40"/>
                                 <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="40" id="5Bq-Se-iiH"/>
@@ -35,7 +35,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Zl7-lU-Fq2">
-                                <rect key="frame" x="249" y="693.33333333333337" width="90" height="40"/>
+                                <rect key="frame" x="287" y="695" width="90" height="40"/>
                                 <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="90" id="gs1-A3-ghY"/>
@@ -53,15 +53,15 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Yqo-9o-928" firstAttribute="top" secondItem="Zuh-p4-8l0" secondAttribute="top" id="6UY-Lg-SOV"/>
-                            <constraint firstItem="GuD-b5-agD" firstAttribute="top" secondItem="Yqo-9o-928" secondAttribute="bottom" constant="50" id="Dvu-QZ-CkZ"/>
-                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="143" id="Mm7-39-ogX"/>
-                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="top" secondItem="Yqo-9o-928" secondAttribute="bottom" constant="51" id="XkB-63-QIU"/>
-                            <constraint firstItem="GuD-b5-agD" firstAttribute="leading" secondItem="Zuh-p4-8l0" secondAttribute="leading" constant="16" id="ZE2-2n-J79"/>
+                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="Zl7-lU-Fq2" secondAttribute="bottom" id="Ejq-PY-6Wv"/>
+                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="top" secondItem="Yqo-9o-928" secondAttribute="bottom" constant="35" id="Ylz-0l-8HB"/>
                             <constraint firstItem="Yqo-9o-928" firstAttribute="leading" secondItem="Zuh-p4-8l0" secondAttribute="leading" id="cWb-Yo-sHl"/>
-                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="trailing" secondItem="Zl7-lU-Fq2" secondAttribute="trailing" constant="54" id="ihg-b4-ajf"/>
-                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="Zl7-lU-Fq2" secondAttribute="bottom" constant="1.6699999999999999" id="oXg-Kt-eg8"/>
+                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="181" id="hGz-lx-kgS"/>
+                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="181" id="kGu-FY-onl"/>
                             <constraint firstItem="Yqo-9o-928" firstAttribute="trailing" secondItem="Zuh-p4-8l0" secondAttribute="trailing" id="onu-Zp-wnT"/>
-                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="GuD-b5-agD" secondAttribute="bottom" constant="2.6699999999999999" id="p0G-8b-ciG"/>
+                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="GuD-b5-agD" secondAttribute="bottom" id="rzt-f7-CNv"/>
+                            <constraint firstItem="GuD-b5-agD" firstAttribute="leading" secondItem="Zuh-p4-8l0" secondAttribute="leading" constant="16" id="wah-y0-0GE"/>
+                            <constraint firstItem="GuD-b5-agD" firstAttribute="top" secondItem="Yqo-9o-928" secondAttribute="bottom" constant="35" id="yp9-Jh-rwp"/>
                         </constraints>
                     </view>
                     <tabBarItem key="tabBarItem" title="Item" id="Lb9-AJ-6Fn"/>
