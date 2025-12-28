@@ -42,6 +42,7 @@
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="NQh-Pw-9VR">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="0.29803921570000003" colorSpace="custom" customColorSpace="sRGB"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="RequestCell" style="IBUITableViewCellStyleSubtitle" id="REQ-cell-1">
                                 <rect key="frame" x="20" y="55.333332061767578" width="353" height="43.666667938232422"/>
@@ -76,7 +77,7 @@
         <!--Add New Request-->
         <scene sceneID="tfz-gU-gJE">
             <objects>
-                <viewController id="alI-2o-yOg" customClass="Requests" sceneMemberID="viewController">
+                <viewController id="alI-2o-yOg" customClass="Requests" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="cQA-Mg-xiY">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -228,7 +229,7 @@
                             </scrollView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="SlV-Md-4yB"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="0.29803921570000003" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="c98-o6-zZU" firstAttribute="bottom" secondItem="SlV-Md-4yB" secondAttribute="bottom" id="GEb-ES-zsl"/>
                             <constraint firstItem="c98-o6-zZU" firstAttribute="leading" secondItem="SlV-Md-4yB" secondAttribute="leading" id="NfL-mY-yW2"/>
@@ -279,7 +280,7 @@
         <!--Dashboard-->
         <scene sceneID="cv0-cm-rD5">
             <objects>
-                <viewController id="pVw-21-jZh" customClass="StudentDashViewController" sceneMemberID="viewController">
+                <viewController id="pVw-21-jZh" customClass="StudentDashViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6iG-fZ-5Nd">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -377,7 +378,7 @@
                             </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="ljR-wa-HHT"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="0.29803921570000003" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="ljR-wa-HHT" firstAttribute="trailing" secondItem="vs8-UD-tcr" secondAttribute="trailing" id="31N-xU-SOr"/>
                             <constraint firstItem="U4S-T9-24o" firstAttribute="top" secondItem="ljR-wa-HHT" secondAttribute="top" id="4P5-k9-1QL"/>
@@ -394,7 +395,7 @@
                         <barButtonItem key="rightBarButtonItem" image="bell.fill" catalog="system" id="b3f-8L-wal"/>
                     </navigationItem>
                     <connections>
-                        <outlet property="profileImageView" destination="nqL-N6-kRn" id="kpi-KH-RmX"/>
+                        <outlet property="profileImageView" destination="nqL-N6-kRn" id="Rbp-AG-ci7"/>
                         <outlet property="quickActionsLabel" destination="ub3-ed-aCj" id="6ef-sv-Ezg"/>
                         <outlet property="viewRecentButton" destination="9hz-ep-8rl" id="X1Z-Kv-XfE"/>
                         <outlet property="welcomeLabel" destination="Iph-D8-bkx" id="N7s-nh-Sua"/>
@@ -423,11 +424,11 @@
             </objects>
             <point key="canvasLocation" x="-1929" y="-161"/>
         </scene>
-        <!--My Request-->
+        <!--New Request-->
         <scene sceneID="qRn-gD-zYs">
             <objects>
                 <navigationController id="Jj2-hT-7sT" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="My Request" image="line.horizontal.3" catalog="system" selectedImage="line.3.horizontal" id="Ats-kx-Dda"/>
+                    <tabBarItem key="tabBarItem" title="New Request" image="line.horizontal.3" catalog="system" selectedImage="plus.square" id="Ats-kx-Dda"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="bhV-1u-N5h">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -452,7 +453,7 @@
     </scenes>
     <inferredMetricsTieBreakers>
         <segue reference="JMX-BR-59A"/>
-        <segue reference="nNI-nd-GI5"/>
+        <segue reference="E9p-Tr-Q5U"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell.fill" catalog="system" width="123" height="128"/>
@@ -461,6 +462,7 @@
         <image name="line.horizontal.3" catalog="system" width="128" height="65"/>
         <image name="person.crop.circle" catalog="system" width="128" height="123"/>
         <image name="plus.app" catalog="system" width="128" height="114"/>
+        <image name="plus.square" catalog="system" width="128" height="114"/>
         <systemColor name="labelColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

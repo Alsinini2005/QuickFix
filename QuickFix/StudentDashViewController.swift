@@ -17,7 +17,7 @@ final class StudentDashViewController: UIViewController {
 
     @IBOutlet private weak var welcomeLabel: UILabel!
     @IBOutlet private weak var quickActionsLabel: UILabel!
-    @IBOutlet private weak var createRequestButton: UIButton!
+  
     @IBOutlet private weak var viewRecentButton: UIButton!
     @IBOutlet weak var profileImageView: UIImageView!
 

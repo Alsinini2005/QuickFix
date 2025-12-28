@@ -131,23 +131,55 @@ final class MyRequestsViewController: UIViewController {
             return
         }
 
-        listener = db.collection("requests")
-            .whereField("userId", isEqualTo: uid)
-            .order(by: "createdAt", descending: true)
-            .addSnapshotListener { [weak self] snap, err in
-                guard let self else { return }
-
-                if let err {
-                    print("MyRequests listen error:", err)
+        Task {
+            do {
+                // 1) Get numeric userId from users/{uid}
+                let snap = try await db.collection("users").document(uid).getDocument()
+                guard let data = snap.data() else {
+                    await MainActor.run {
+                        self.rows = []
+                        self.tableView.reloadData()
+                    }
                     return
                 }
 
-                guard let snap else { return }
+                let numericUserId: Int
+                if let n = data["userId"] as? Int { numericUserId = n }
+                else if let n = data["userId"] as? Int64 { numericUserId = Int(n) }
+                else if let n = data["userId"] as? Double { numericUserId = Int(n) }
+                else {
+                    throw NSError(domain: "User", code: 0,
+                                  userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users/{uid}."])
+                }
 
-                self.rows = snap.documents.compactMap { RequestRow.from(doc: $0) }
-                DispatchQueue.main.async { self.tableView.reloadData() }
+                // 2) Listen using NUMBER userId
+                self.listener = self.db.collection("requests")
+                    .whereField("userId", isEqualTo: numericUserId)
+                    .order(by: "createdAt", descending: true)
+                    .addSnapshotListener { [weak self] snap, err in
+                        guard let self else { return }
+
+                        if let err {
+                            print("MyRequests listen error:", err)
+                            return
+                        }
+
+                        guard let snap else { return }
+
+                        self.rows = snap.documents.compactMap { RequestRow.from(doc: $0) }
+                        DispatchQueue.main.async { self.tableView.reloadData() }
+                    }
+
+            } catch {
+                await MainActor.run {
+                    print("Failed to fetch numeric userId:", error)
+                    self.rows = []
+                    self.tableView.reloadData()
+                }
             }
+        }
     }
+
 
     // MARK: - Cell UI
 
