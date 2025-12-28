@@ -109,11 +109,9 @@ final class SettingsTableViewController: UITableViewController {
     private func doLogout() {
         do {
             try Auth.auth().signOut()
-
+            
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let loginVC = storyboard.instantiateViewController(
-                withIdentifier: "LoginTableViewController"
-            )
+            guard let loginVC = storyboard.instantiateInitialViewController() else { return }
 
             loginVC.modalPresentationStyle = .fullScreen
 
