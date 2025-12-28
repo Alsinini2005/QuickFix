@@ -1,18 +1,38 @@
 import UIKit
+import FirebaseFirestore
+
+import Foundation
+
+// Firebase is the database. These are just models for UI.
+struct InventoryItem: Hashable {
+    let partNumber: String   // Firestore documentID
+    let name: String
+    let stockQty: Int        // Firestore "quantity"
+}
+
+struct UsedItem: Hashable {
+    let partNumber: String   // Firestore documentID
+    let name: String
+    let qty: Int
+}
+
 
 final class AdminInventoryViewController: UIViewController {
 
     @IBOutlet weak var monthPicker: UIPickerView!
     @IBOutlet weak var yearField: UITextField!
     @IBOutlet weak var tableView: UITableView!
-    
+
+    private let db = Firestore.firestore()
+    private var invListener: ListenerRegistration?
+
     private let months = [
         "January","February","March","April","May","June",
         "July","August","September","October","November","December"
     ]
 
     private var inventory: [InventoryItem] = []
-    private var editedStock: [String: Int] = [:]
+    private var editedStock: [String: Int] = [:]   // docId -> newQty
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,7 +48,6 @@ final class AdminInventoryViewController: UIViewController {
         monthPicker.dataSource = self
         monthPicker.delegate = self
 
-        // Default month/year
         let comps = Calendar.current.dateComponents([.year, .month], from: Date())
         let year = comps.year ?? Calendar.current.component(.year, from: Date())
         let month = comps.month ?? 1
@@ -36,59 +55,90 @@ final class AdminInventoryViewController: UIViewController {
         yearField.keyboardType = .numberPad
         yearField.textAlignment = .center
         yearField.text = "\(year)"
-        yearField.inputAccessoryView = makeDoneToolbar()
-
         monthPicker.selectRow(month - 1, inComponent: 0, animated: false)
 
-        // load inventory
-        inventory = DataStore.shared.loadInventory()
+        // ✅ No Done toolbar — tap anywhere to dismiss keyboard
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
 
-        // Auto refresh when technician updates
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(reloadInventory),
-                                               name: .inventoryDidChange,
-                                               object: nil)
+        startListeningInventory()
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        invListener?.remove()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        reloadInventory()
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
-    @objc private func reloadInventory() {
-        inventory = DataStore.shared.loadInventory()
-        editedStock.removeAll()
-        tableView.reloadData()
-    }
+    private func startListeningInventory() {
+        invListener?.remove()
 
-    // MARK: - Buttons
+        invListener = db.collection("inventory")
+            .order(by: "name")
+            .addSnapshotListener { [weak self] snap, err in
+                guard let self else { return }
+
+                if let err = err {
+                    print("Inventory listen error:", err)
+                    return
+                }
+
+                self.inventory = (snap?.documents ?? []).map { doc in
+                    let data = doc.data()
+                    return InventoryItem(
+                        partNumber: doc.documentID,
+                        name: data["name"] as? String ?? "(no name)",
+                        stockQty: data["quantity"] as? Int ?? 0
+                    )
+                }
+
+                self.editedStock.removeAll()
+                self.tableView.reloadData()
+            }
+    }
 
     @IBAction func updateTapped(_ sender: UIButton) {
         view.endEditing(true)
 
-        // Apply edits
-        for i in 0..<inventory.count {
-            let partNo = inventory[i].partNumber
-            if let newQty = editedStock[partNo] {
-                inventory[i].stockQty = max(0, newQty)
-                DataStore.shared.updateStock(partNumber: partNo, newQty: newQty)
-            }
+        if editedStock.isEmpty {
+            let alert = UIAlertController(title: "No Changes", message: "Nothing to update.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
         }
 
-        editedStock.removeAll()
-        tableView.reloadData()
+        let batch = db.batch()
+        for (docId, newQty) in editedStock {
+            let ref = db.collection("inventory").document(docId)
+            batch.updateData([
+                "quantity": max(0, newQty),
+                "lastUpdated": FieldValue.serverTimestamp()
+            ], forDocument: ref)
+        }
 
-        let alert = UIAlertController(
-            title: "Inventory Updated ✅",
-            message: "The inventory quantities have been updated successfully.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        batch.commit { [weak self] err in
+            guard let self else { return }
+
+            if let err = err {
+                let alert = UIAlertController(title: "Failed ⚠️", message: err.localizedDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+                return
+            }
+
+            self.editedStock.removeAll()
+
+            let alert = UIAlertController(
+                title: "Inventory Updated ✅",
+                message: "The inventory quantities have been updated successfully.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
     }
 
     @IBAction func generateTapped(_ sender: UIButton) {
@@ -96,7 +146,6 @@ final class AdminInventoryViewController: UIViewController {
         performSegue(withIdentifier: "showReport", sender: nil)
     }
 
-    // ✅ مهم: هذا يمنع الكراش حتى لو Report داخل Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard segue.identifier == "showReport" else { return }
 
@@ -115,11 +164,7 @@ final class AdminInventoryViewController: UIViewController {
             reportVC.year = selectedYear
             return
         }
-
-        assertionFailure("Destination is not ReportViewController. Check storyboard class.")
     }
-
-    // MARK: - Stock field
 
     @objc private func stockChanged(_ sender: UITextField) {
         let row = sender.tag
@@ -135,30 +180,14 @@ final class AdminInventoryViewController: UIViewController {
         tf.borderStyle = .roundedRect
         tf.keyboardType = .numberPad
         tf.textAlignment = .center
-        tf.text = "\(current)"                // يظهر الرقم الحالي داخل الخانة
+        tf.text = "\(current)"
         tf.tag = row
         tf.addTarget(self, action: #selector(stockChanged(_:)), for: .editingChanged)
-        tf.inputAccessoryView = makeDoneToolbar()
         tf.semanticContentAttribute = .forceLeftToRight
         return tf
     }
-
-    private func makeDoneToolbar() -> UIToolbar {
-        let tb = UIToolbar()
-        tb.sizeToFit()
-        tb.items = [
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneEditing))
-        ]
-        return tb
-    }
-
-    @objc private func doneEditing() {
-        view.endEditing(true)
-    }
 }
 
-// MARK: - Table
 extension AdminInventoryViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -172,15 +201,14 @@ extension AdminInventoryViewController: UITableViewDataSource, UITableViewDelega
         let item = inventory[indexPath.row]
 
         cell.textLabel?.text = item.name
-        cell.detailTextLabel?.text = "Part: \(item.partNumber) | Stock: \(item.stockQty)"
+        cell.detailTextLabel?.text = "ID: \(item.partNumber) | Stock: \(item.stockQty)"
         cell.selectionStyle = .none
-
         cell.accessoryView = makeStockField(row: indexPath.row, current: item.stockQty)
+
         return cell
     }
 }
 
-// MARK: - Picker
 extension AdminInventoryViewController: UIPickerViewDataSource, UIPickerViewDelegate {
     func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { months.count }
@@ -188,5 +216,4 @@ extension AdminInventoryViewController: UIPickerViewDataSource, UIPickerViewDele
         months[row]
     }
 }
-
 

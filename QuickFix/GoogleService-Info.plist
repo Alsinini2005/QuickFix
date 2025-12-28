@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyC-QEynCu8L4wd1XM8FBTpvMi9_Z8hMvqU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>17562715212</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>Polytechnic.QuickFix</string>
+	<key>PROJECT_ID</key>
+	<string>inventorymanagment-76690</string>
+	<key>STORAGE_BUCKET</key>
+	<string>inventorymanagment-76690.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:17562715212:ios:1c22a3cf434b7540a0a0e9</string>
+</dict>
+</plist>

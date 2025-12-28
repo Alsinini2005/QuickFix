@@ -1,4 +1,5 @@
 import UIKit
+import FirebaseFirestore
 
 final class ReportViewController: UIViewController {
 
@@ -8,7 +9,8 @@ final class ReportViewController: UIViewController {
     var month: Int = 1
     var year: Int = 2025
 
-    fileprivate var results: [UsedItem] = []
+    private let db = Firestore.firestore()
+    private var results: [UsedItem] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,15 +20,6 @@ final class ReportViewController: UIViewController {
 
         tableView.dataSource = self
         tableView.rowHeight = 64
-
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(reloadReport),
-                                               name: .usageDidChange,
-                                               object: nil)
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -34,13 +27,46 @@ final class ReportViewController: UIViewController {
         reloadReport()
     }
 
-    @objc private func reloadReport() {
-        results = DataStore.shared.monthlyUsedSummary(month: month, year: year)
+    private func reloadReport() {
+        db.collection("usageLogs")
+            .whereField("month", isEqualTo: month)
+            .whereField("year", isEqualTo: year)
+            .getDocuments { [weak self] snap, err in
+                guard let self else { return }
 
-        let totalQty = results.reduce(0) { $0 + $1.qty }
-        summaryLabel.text = "Month: \(month)/\(year)\nTotal Items: \(results.count)\nTotal Quantity: \(totalQty)"
+                if let err = err {
+                    self.summaryLabel.text = "Error: \(err.localizedDescription)"
+                    print("Report fetch error:", err)
+                    return
+                }
 
-        tableView.reloadData()
+                var agg: [String: UsedItem] = [:]
+
+                for doc in snap?.documents ?? [] {
+                    let data = doc.data()
+                    let items = data["items"] as? [[String: Any]] ?? []
+
+                    for it in items {
+                        let part = it["partNumber"] as? String ?? ""
+                        let name = it["name"] as? String ?? "(no name)"
+                        let qty = it["qty"] as? Int ?? 0
+                        guard !part.isEmpty, qty > 0 else { continue }
+
+                        if let existing = agg[part] {
+                            agg[part] = UsedItem(partNumber: existing.partNumber, name: existing.name, qty: existing.qty + qty)
+                        } else {
+                            agg[part] = UsedItem(partNumber: part, name: name, qty: qty)
+                        }
+                    }
+                }
+
+                self.results = agg.values.sorted { $0.qty > $1.qty }
+
+                let totalQty = self.results.reduce(0) { $0 + $1.qty }
+                self.summaryLabel.text = "Month: \(self.month)/\(self.year)\nTotal Items: \(self.results.count)\nTotal Quantity: \(totalQty)"
+
+                self.tableView.reloadData()
+            }
     }
 }
 
@@ -56,10 +82,9 @@ extension ReportViewController: UITableViewDataSource {
         let item = results[indexPath.row]
 
         cell.textLabel?.text = item.name
-        cell.detailTextLabel?.text = "Part: \(item.partNumber) | Used Qty: \(item.qty)"
+        cell.detailTextLabel?.text = "ID: \(item.partNumber) | Used Qty: \(item.qty)"
         cell.selectionStyle = .none
         return cell
     }
 }
-
 
