@@ -44,6 +44,7 @@ final class AddRuleViewController: UITableViewController, UIPickerViewDataSource
     // MARK: - Edit Mode
     private var editingRuleId: UUID? = nil
     private var pendingEditRule: AutoRule? = nil
+    var currentEditingRuleId: UUID? { editingRuleId }
 
     // AutoRulesViewController بينادي هذي قبل ما يفتح الصفحة (وقت الـ Edit)
     func configureForEdit(rule: AutoRule) {
