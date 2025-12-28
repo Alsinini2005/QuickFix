@@ -17,15 +17,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="Yqo-9o-928">
-                                <rect key="frame" x="0.0" y="162" width="393" height="498"/>
+                                <rect key="frame" x="0.0" y="162" width="393" height="474"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GuD-b5-agD">
-                                <rect key="frame" x="16" y="695" width="90" height="40"/>
+                                <rect key="frame" x="20" y="671" width="77.666666666666671" height="44"/>
                                 <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="40" id="5Bq-Se-iiH"/>
-                                    <constraint firstAttribute="width" constant="90" id="u2W-cR-30j"/>
+                                    <constraint firstAttribute="height" constant="44" id="5Bq-Se-iiH"/>
                                 </constraints>
                                 <color key="tintColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="Button"/>
@@ -35,11 +34,10 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Zl7-lU-Fq2">
-                                <rect key="frame" x="287" y="695" width="90" height="40"/>
+                                <rect key="frame" x="301" y="671" width="72" height="44"/>
                                 <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="90" id="gs1-A3-ghY"/>
-                                    <constraint firstAttribute="height" constant="40" id="q4X-Hq-1hw"/>
+                                    <constraint firstAttribute="height" constant="44" id="q4X-Hq-1hw"/>
                                 </constraints>
                                 <color key="tintColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="Button"/>
@@ -53,14 +51,15 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Yqo-9o-928" firstAttribute="top" secondItem="Zuh-p4-8l0" secondAttribute="top" id="6UY-Lg-SOV"/>
-                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="Zl7-lU-Fq2" secondAttribute="bottom" id="Ejq-PY-6Wv"/>
+                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="trailing" secondItem="Zl7-lU-Fq2" secondAttribute="trailing" constant="20" id="74y-Eu-Ob3"/>
+                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="Zl7-lU-Fq2" secondAttribute="bottom" constant="20" id="Ejq-PY-6Wv"/>
+                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="203.33000000000001" id="S5r-V6-MhH"/>
                             <constraint firstItem="Zl7-lU-Fq2" firstAttribute="top" secondItem="Yqo-9o-928" secondAttribute="bottom" constant="35" id="Ylz-0l-8HB"/>
                             <constraint firstItem="Yqo-9o-928" firstAttribute="leading" secondItem="Zuh-p4-8l0" secondAttribute="leading" id="cWb-Yo-sHl"/>
-                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="181" id="hGz-lx-kgS"/>
-                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="181" id="kGu-FY-onl"/>
                             <constraint firstItem="Yqo-9o-928" firstAttribute="trailing" secondItem="Zuh-p4-8l0" secondAttribute="trailing" id="onu-Zp-wnT"/>
-                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="GuD-b5-agD" secondAttribute="bottom" id="rzt-f7-CNv"/>
-                            <constraint firstItem="GuD-b5-agD" firstAttribute="leading" secondItem="Zuh-p4-8l0" secondAttribute="leading" constant="16" id="wah-y0-0GE"/>
+                            <constraint firstItem="Zuh-p4-8l0" firstAttribute="bottom" secondItem="GuD-b5-agD" secondAttribute="bottom" constant="20" id="rzt-f7-CNv"/>
+                            <constraint firstItem="GuD-b5-agD" firstAttribute="leading" secondItem="Zuh-p4-8l0" secondAttribute="leading" constant="20" id="wah-y0-0GE"/>
+                            <constraint firstItem="Zl7-lU-Fq2" firstAttribute="leading" secondItem="GuD-b5-agD" secondAttribute="trailing" constant="203.33000000000001" id="wrd-se-jZC"/>
                             <constraint firstItem="GuD-b5-agD" firstAttribute="top" secondItem="Yqo-9o-928" secondAttribute="bottom" constant="35" id="yp9-Jh-rwp"/>
                         </constraints>
                     </view>

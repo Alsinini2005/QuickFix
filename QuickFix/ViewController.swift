@@ -1,175 +1,197 @@
 import UIKit
 import FirebaseFirestore
+
+// MARK: - Model
+struct TaskItem {
+    let id: String
+    let title: String
+    let details: String
+    let status: String
+
+    init?(doc: DocumentSnapshot) {
+        let data = doc.data() ?? [:]
+
+        guard
+            let title = data["title"] as? String,
+            let details = data["details"] as? String,
+            let status = data["status"] as? String
+        else { return nil }
+
+        self.id = doc.documentID
+        self.title = title
+        self.details = details
+        self.status = status
+    }
+}
+
+// MARK: - ViewController
 final class TechnicianTasksViewController: UIViewController {
 
-@IBOutlet private weak var tableView: UITableView!
-@IBOutlet private weak var acceptButton: UIButton!
-@IBOutlet private weak var rejectButton: UIButton!
-    
-    
-    
+    @IBOutlet private weak var tableView: UITableView!
+    @IBOutlet private weak var acceptButton: UIButton!
+    @IBOutlet private weak var rejectButton: UIButton!
 
-// Initial tasks (title + details)
-private let initialTasks: [(title: String, details: String)] = [
-("Replace network cable", "Room: 204 • Building: IT Block"),
-("Fix printer issue", "Room: Admin Office • Floor: 1"),
-("Install software", "Lab: Computer Lab 3"),
-("Check UPS status", "Location: Server Room"),
-("Configure workstation", "Room: HR Office"),
-("Update antivirus", "Department: Faculty"),
-("Troubleshoot Wi-Fi", "Area: Library"),
-("Replace keyboard", "Lab: Lab 3"),
-("Backup files", "Department: Finance"),
-("Inspect network switch", "Location: IT Room")
-]
+    private var tasks: [TaskItem] = []
+    private var selectedTaskIDs = Set<String>()
 
-private var tasks: [(title: String, details: String)] = []
-private var selectedTasks = Set<Int>()
+    private let db = Firestore.firestore()
+    private var listener: ListenerRegistration?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        
-        tasks = initialTasks
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.reloadData()
 
-       
-        let db = Firestore.firestore()
-        db.collection("test").addDocument(data: [
-            "message": "Firebase connected ✅",
-            "createdAt": Timestamp(date: Date())
-        ]) { error in
-            if let error = error {
-                print("❌ Firestore error:", error)
-            } else {
-                print("✅ Firestore write success")
+        updateButtonsState()
+        startListening()
+    }
+
+    deinit {
+        listener?.remove()
+    }
+
+    private func startListening() {
+        listener?.remove()
+
+        listener = db.collection("tasks")
+            .addSnapshotListener { [weak self] snapshot, error in
+
+                if let error = error {
+                    print("❌ Firestore error:", error.localizedDescription)
+                    return
+                }
+
+                let count = snapshot?.documents.count ?? 0
+                print("✅ got tasks:", count)
+
+                guard let self else { return }
+
+                let docs = snapshot?.documents ?? []
+                self.tasks = docs.compactMap { TaskItem(doc: $0) }
+
+                print("✅ parsed tasks:", self.tasks.count)
+
+                self.tableView.reloadData()
             }
+    }
+
+    // MARK: - Actions
+    @IBAction private func acceptPressed(_ sender: UIButton) {
+        guard !selectedTaskIDs.isEmpty else {
+            showInfoAlert(title: "No Selection", message: "Please select at least one task.")
+            return
+        }
+
+        updateSelectedTasksStatus(to: "accepted") { [weak self] in
+            self?.showInfoAlert(title: "Done", message: "Selected task(s) accepted ✅")
         }
     }
 
+    @IBAction private func rejectPressed(_ sender: UIButton) {
+        guard !selectedTaskIDs.isEmpty else {
+            showInfoAlert(title: "No Selection", message: "Please select at least one task.")
+            return
+        }
 
-// MARK: - Actions
+        let alert = UIAlertController(
+            title: "Reject Task",
+            message: "Write a reason (optional):",
+            preferredStyle: .alert
+        )
+        alert.addTextField { $0.placeholder = "Reason..." }
 
-@IBAction private func acceptPressed(_ sender: UIButton) {
-guard !selectedTasks.isEmpty else {
-showInfoAlert(title: "No Selection", message: "Please select at least one task.")
-return
-}
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-let chosen = selectedTasks.sorted().map { tasks[$0].title }
-let message = chosen.map { "• \($0)" }.joined(separator: "\n")
+        alert.addAction(UIAlertAction(title: "Submit", style: .destructive) { [weak self] _ in
+            let reason = alert.textFields?.first?.text ?? ""
+            self?.updateSelectedTasksStatus(to: "rejected", extra: ["rejectReason": reason]) {
+                self?.showInfoAlert(title: "Done", message: "Selected task(s) rejected ❌")
+            }
+        })
 
-let alert = UIAlertController(
-title: "Thank You",
-message: "You accepted the following task(s):\n\n\(message)",
-preferredStyle: .alert
-)
+        present(alert, animated: true)
+    }
 
-alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-self?.removeSelectedTasks()
-})
+    // MARK: - Helpers
+    private func updateSelectedTasksStatus(
+        to newStatus: String,
+        extra: [String: Any] = [:],
+        completion: (() -> Void)? = nil
+    ) {
+        let ids = Array(selectedTaskIDs)
+        guard !ids.isEmpty else { return }
 
-present(alert, animated: true)
-}
+        let group = DispatchGroup()
 
-@IBAction private func rejectPressed(_ sender: UIButton) {
-guard !selectedTasks.isEmpty else {
-showInfoAlert(title: "No Selection", message: "Please select at least one task.")
-return
-}
+        for id in ids {
+            group.enter()
 
-let alert = UIAlertController(
-title: "Reject Task",
-message: "Please write the reason for rejecting the selected task(s).",
-preferredStyle: .alert
-)
+            var data: [String: Any] = ["status": newStatus]
+            extra.forEach { data[$0.key] = $0.value }
 
-alert.addTextField { tf in
-tf.placeholder = "Reason..."
-}
+            db.collection("tasks").document(id).updateData(data) { _ in
+                group.leave()
+            }
+        }
 
-alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        group.notify(queue: .main) { [weak self] in
+            self?.selectedTaskIDs.removeAll()
+            self?.updateButtonsState()
+            completion?()
+        }
+    }
 
-alert.addAction(UIAlertAction(title: "Submit", style: .destructive) { [weak self] _ in
-self?.removeSelectedTasks()
-})
+    private func updateButtonsState() {
+        let enabled = !selectedTaskIDs.isEmpty
+        acceptButton.isEnabled = enabled
+        rejectButton.isEnabled = enabled
+        acceptButton.alpha = enabled ? 1.0 : 0.5
+        rejectButton.alpha = enabled ? 1.0 : 0.5
+    }
 
-present(alert, animated: true)
-}
-
-// MARK: - Helpers
-
-private func removeSelectedTasks() {
-let indexes = selectedTasks.sorted(by: >)
-for index in indexes {
-tasks.remove(at: index)
-}
-selectedTasks.removeAll()
-tableView.reloadData()
-updateButtonsState()
-}
-
-private func updateButtonsState() {
-let enabled = !selectedTasks.isEmpty
-acceptButton.isEnabled = enabled
-rejectButton.isEnabled = enabled
-acceptButton.alpha = enabled ? 1.0 : 0.5
-rejectButton.alpha = enabled ? 1.0 : 0.5
-}
-
-private func showInfoAlert(title: String, message: String) {
-let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-alert.addAction(UIAlertAction(title: "OK", style: .default))
-present(alert, animated: true)
-}
+    private func showInfoAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - TableView
-
 extension TechnicianTasksViewController: UITableViewDataSource, UITableViewDelegate {
 
-func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-tasks.count
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        tasks.count
+    }
+
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell")
+            ?? UITableViewCell(style: .subtitle, reuseIdentifier: "TaskCell")
+
+        let task = tasks[indexPath.row]
+
+        cell.textLabel?.text = task.title
+        cell.detailTextLabel?.text = "\(task.details) • \(task.status)"
+
+        cell.accessoryType = selectedTaskIDs.contains(task.id) ? .checkmark : .none
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+
+        let id = tasks[indexPath.row].id
+
+        if selectedTaskIDs.contains(id) {
+            selectedTaskIDs.remove(id)
+        } else {
+            selectedTaskIDs.insert(id)
+        }
+
+        tableView.reloadRows(at: [indexPath], with: .automatic)
+        updateButtonsState()
+    }
 }
 
-func tableView(_ tableView: UITableView,
-cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "TaskCell")
-cell.selectionStyle = .none
-
-let task = tasks[indexPath.row]
-
-cell.textLabel?.text = task.title
-cell.textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-cell.textLabel?.numberOfLines = 1
-
-cell.detailTextLabel?.text = task.details
-cell.detailTextLabel?.font = .systemFont(ofSize: 13)
-cell.detailTextLabel?.textColor = .secondaryLabel
-cell.detailTextLabel?.numberOfLines = 1
-
-if selectedTasks.contains(indexPath.row) {
-cell.accessoryType = .checkmark
-} else {
-cell.accessoryType = .none
-}
-
-return cell
-}
-
-func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-tableView.deselectRow(at: indexPath, animated: true)
-
-if selectedTasks.contains(indexPath.row) {
-selectedTasks.remove(indexPath.row)
-} else {
-selectedTasks.insert(indexPath.row)
-}
-
-tableView.reloadRows(at: [indexPath], with: .automatic)
-updateButtonsState()
-}
-}
