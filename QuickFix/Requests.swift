@@ -2,30 +2,34 @@
 //  Requests.swift
 //  QuickFix
 //
-//  New Request backend (Firestore + Cloudinary)
-//  - Submit button saves to Firestore
-//  - Optional image upload to Cloudinary
-//  - Optional photo picker
+//  Add New Request screen
+//  ✅ Campus is a UIButton (picker via ActionSheet)
+//  ✅ Submit saves to Firestore so it appears in MyRequestsViewController
+//     - userId = Auth uid
+//     - status = "pending"
+//     - createdAt = Timestamp(date: Date())
+//  ✅ Optional image upload to Cloudinary (only if configured)
 //
 
 import UIKit
+import FirebaseAuth
 import FirebaseFirestore
 
 final class Requests: UIViewController {
 
     // MARK: - Outlets (connect in storyboard)
-    
-    @IBOutlet weak var campusTextField: UIButton!
-   
+
+    @IBOutlet weak var campusTextField: UIButton!          // Button title shows selected campus
     @IBOutlet weak var buildingTextField: UITextField!
-    
     @IBOutlet weak var classroomTextField: UITextField!
-   
-    @IBOutlet weak var descriptionTextView: UITextField!
-    
+    @IBOutlet weak var descriptionTextView: UITextField!   // if you want multiline, change storyboard to UITextView
     @IBOutlet weak var previewImageView: UIImageView?      // optional
 
-    // MARK: - Config (CHANGE THESE)
+    // MARK: - Campus options (EDIT THESE)
+    private let campusOptions = ["Main Campus", "Isa Town", "Sitra", "Riffa", "Muharraq"]
+
+    // MARK: - Cloudinary (OPTIONAL)
+    // Leave as default if not using Cloudinary.
     private let cloudName = "YOUR_CLOUD_NAME"
     private let uploadPreset = "YOUR_UNSIGNED_PRESET"
 
@@ -40,7 +44,15 @@ final class Requests: UIViewController {
         setupUI()
     }
 
+    // MARK: - UI
+
     private func setupUI() {
+        // default campus title
+        if (campusTextField.title(for: .normal) ?? "").isEmpty {
+            campusTextField.setTitle("Select Campus", for: .normal)
+        }
+
+        // image preview styling
         previewImageView?.contentMode = .scaleAspectFill
         previewImageView?.layer.cornerRadius = 12
         previewImageView?.layer.masksToBounds = true
@@ -55,6 +67,28 @@ final class Requests: UIViewController {
         view.endEditing(true)
     }
 
+    // MARK: - Campus (UIButton)
+
+    @IBAction func campusButtonTapped(_ sender: UIButton) {
+        let sheet = UIAlertController(title: "Select Campus", message: nil, preferredStyle: .actionSheet)
+
+        campusOptions.forEach { campus in
+            sheet.addAction(UIAlertAction(title: campus, style: .default) { [weak self] _ in
+                self?.campusTextField.setTitle(campus, for: .normal)
+            })
+        }
+
+        sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        // iPad safe
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sender
+            pop.sourceRect = sender.bounds
+        }
+
+        present(sheet, animated: true)
+    }
+
     // MARK: - Actions
 
     @IBAction func submitButtonTapped(_ sender: UIButton) {
@@ -63,7 +97,14 @@ final class Requests: UIViewController {
 
         Task {
             do {
-                let userId = "demo_user" // replace later with Auth user id
+                guard let uid = Auth.auth().currentUser?.uid else {
+                    await MainActor.run {
+                        sender.isEnabled = true
+                        self.view.isUserInteractionEnabled = true
+                        self.showAlert(title: "Error", message: "Please login first.")
+                    }
+                    return
+                }
 
                 let campus = campusTextField.title(for: .normal) ?? ""
                 let building = buildingTextField.text ?? ""
@@ -72,15 +113,12 @@ final class Requests: UIViewController {
 
                 try validate(campus: campus, building: building, classroom: classroom, desc: desc)
 
-                // Upload image (optional)
-                var imageUrl: String? = nil
-                if let img = pickedImage {
-                    imageUrl = try await uploadToCloudinary(image: img)
-                }
+                // Optional image upload
+                let imageUrl: String? = try await uploadToCloudinaryIfConfigured(image: pickedImage)
 
-                // Save request
+                // Save request (matches MyRequestsViewController expected fields)
                 try await saveToFirestore(
-                    userId: userId,
+                    userId: uid,
                     campus: campus,
                     building: building,
                     classroom: classroom,
@@ -91,8 +129,11 @@ final class Requests: UIViewController {
                 await MainActor.run {
                     sender.isEnabled = true
                     self.view.isUserInteractionEnabled = true
-                    self.clearForm()
-                    self.showAlert(title: "Done", message: "Request submitted ✅")
+
+                    // Go back so user sees it appear in My Requests (listener will update)
+                    self.navigationController?.popViewController(animated: true)
+                    // If presented modally instead:
+                    // self.dismiss(animated: true)
                 }
 
             } catch {
@@ -117,9 +158,14 @@ final class Requests: UIViewController {
         let classroomT = classroom.trimmingCharacters(in: .whitespacesAndNewlines)
         let descT = desc.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard !campusT.isEmpty, !buildingT.isEmpty, !classroomT.isEmpty, !descT.isEmpty else {
-            throw NSError(domain: "Validation", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "Please fill all fields before submitting."])
+        let campusIsValid = !campusT.isEmpty && campusT != "Select Campus"
+
+        guard campusIsValid, !buildingT.isEmpty, !classroomT.isEmpty, !descT.isEmpty else {
+            throw NSError(
+                domain: "Validation",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "Please fill all fields before submitting."]
+            )
         }
     }
 
@@ -134,26 +180,34 @@ final class Requests: UIViewController {
         imageUrl: String?
     ) async throws {
 
+        // NOTE:
+        // MyRequestsViewController uses "title", "status", "createdAt", "userId"
+        // Here we use the description as title because your UI doesn't have a separate title field.
+        // If you later add a "titleTextField", set "title" to that field instead.
         let payload: [String: Any] = [
             "userId": userId,
+            "title": desc.trimmingCharacters(in: .whitespacesAndNewlines),
             "campus": campus.trimmingCharacters(in: .whitespacesAndNewlines),
             "building": building.trimmingCharacters(in: .whitespacesAndNewlines),
             "classroom": classroom.trimmingCharacters(in: .whitespacesAndNewlines),
             "problemDescription": desc.trimmingCharacters(in: .whitespacesAndNewlines),
             "imageUrl": imageUrl as Any,
-            "status": "submitted",
-            "createdAt": FieldValue.serverTimestamp()
+            "status": "pending",
+            "createdAt": Timestamp(date: Date())
         ]
 
         try await db.collection("requests").addDocument(data: payload)
     }
 
-    // MARK: - Cloudinary
+    // MARK: - Cloudinary (optional)
 
-    private func uploadToCloudinary(image: UIImage) async throws -> String {
-        guard cloudName != "YOUR_CLOUD_NAME", uploadPreset != "YOUR_UNSIGNED_PRESET" else {
-            throw NSError(domain: "Cloudinary", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "Set Cloudinary cloudName & uploadPreset first."])
+    private func uploadToCloudinaryIfConfigured(image: UIImage?) async throws -> String? {
+        // no image selected
+        guard let image else { return nil }
+
+        // not configured -> skip upload
+        if cloudName == "YOUR_CLOUD_NAME" || uploadPreset == "YOUR_UNSIGNED_PRESET" {
+            return nil
         }
 
         guard let data = image.jpegData(compressionQuality: 0.85) else {
@@ -186,7 +240,6 @@ final class Requests: UIViewController {
         request.httpBody = body
 
         let (respData, resp) = try await URLSession.shared.data(for: request)
-
         guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             let msg = String(data: respData, encoding: .utf8) ?? "Cloudinary upload failed"
             throw NSError(domain: "Cloudinary", code: 2,
@@ -214,15 +267,6 @@ final class Requests: UIViewController {
 
     // MARK: - Helpers
 
-    private func clearForm() {
-        campusTextField.setTitle("Select Campus", for: .normal)
-        buildingTextField.text = ""
-        classroomTextField.text = ""
-        descriptionTextView.text = ""
-        pickedImage = nil
-        previewImageView?.image = nil
-    }
-
     private func showAlert(title: String, message: String) {
         let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
@@ -230,7 +274,9 @@ final class Requests: UIViewController {
     }
 }
 
+// MARK: - UIImagePickerControllerDelegate
 extension Requests: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true)
     }
@@ -247,6 +293,7 @@ extension Requests: UIImagePickerControllerDelegate, UINavigationControllerDeleg
     }
 }
 
+// MARK: - Data helper
 private extension Data {
     mutating func append(_ string: String) {
         self.append(string.data(using: .utf8)!)

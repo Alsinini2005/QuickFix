@@ -1,82 +1,168 @@
-//
-//  MyRequestsViewController.swift
-//  QuickFix
-//
-//  Shows all requests created by the user from Firestore in a UITableView.
-//  Realtime updates via addSnapshotListener.
-//
-
 import UIKit
+import FirebaseAuth
 import FirebaseFirestore
+
+// MARK: - Model + Status
+
+private enum RequestStatus: String {
+    case pending = "pending"
+    case inProgress = "in_progress"
+    case completed = "completed"
+
+    var title: String {
+        switch self {
+        case .pending: return "Pending"
+        case .inProgress: return "In Progress"
+        case .completed: return "Completed"
+        }
+    }
+
+    var dotColor: UIColor {
+        switch self {
+        case .pending: return UIColor(red: 241/255, green: 90/255, blue: 90/255, alpha: 1)
+        case .inProgress: return UIColor(red: 225/255, green: 169/255, blue: 40/255, alpha: 1)
+        case .completed: return UIColor(red: 55/255, green: 171/255, blue: 97/255, alpha: 1)
+        }
+    }
+
+    var badgeBG: UIColor {
+        switch self {
+        case .pending: return UIColor(red: 1, green: 0.93, blue: 0.93, alpha: 1)
+        case .inProgress: return UIColor(red: 1, green: 0.96, blue: 0.86, alpha: 1)
+        case .completed: return UIColor(red: 0.88, green: 0.98, blue: 0.91, alpha: 1)
+        }
+    }
+
+    var badgeText: UIColor { dotColor }
+}
+
+private struct RequestRow {
+    let id: String
+    let title: String
+    let createdAt: Date
+    let status: RequestStatus
+
+    var createdText: String {
+        createdAt.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    static func from(doc: QueryDocumentSnapshot) -> RequestRow? {
+        let d = doc.data()
+        guard
+            let title = d["title"] as? String,
+            let createdAt = d["createdAt"] as? Timestamp,
+            let statusStr = d["status"] as? String,
+            let status = RequestStatus(rawValue: statusStr)
+        else { return nil }
+
+        return RequestRow(
+            id: doc.documentID,
+            title: title,
+            createdAt: createdAt.dateValue(),
+            status: status
+        )
+    }
+}
+
+// MARK: - ViewController
 
 final class MyRequestsViewController: UIViewController {
 
-    // MARK: - Outlets (connect in storyboard)
-    @IBOutlet weak var tableView: UITableView!
+    // MARK: - Outlet
+    @IBOutlet private weak var tableView: UITableView!
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
     // MARK: - Data
-    private var requests: [RequestRow] = []
-
-    // For now (no Auth). Must match what you save in Requests page.
-    private let demoUserId = "demo_user"
+    private var rows: [RequestRow] = []
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        setupTable()
-        startListeningForRequests()
-    }
+        setupNavBar()
+        setupTableUI()
 
-    deinit {
-        listener?.remove()
-    }
-
-    // MARK: - Setup
-    private func setupTable() {
         tableView.dataSource = self
         tableView.delegate = self
 
-        // If you are using a prototype cell in storyboard with Identifier = "RequestCell"
-        // you DO NOT need to register anything here.
-        // If you are NOT using a prototype cell, uncomment below and use a basic cell:
-        // tableView.register(UITableViewCell.self, forCellReuseIdentifier: "RequestCell")
+        startListening()
     }
 
-    // MARK: - Firestore
-    private func startListeningForRequests() {
-        // Stop any existing listener (safety)
+    deinit { listener?.remove() }
+
+    // MARK: - UI
+
+    private func setupNavBar() {
+        title = "My Requests"
+
+        let barColor = UIColor(red: 44/255, green: 70/255, blue: 92/255, alpha: 1)
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = barColor
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
+        ]
+
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.tintColor = .white
+    }
+
+    private func setupTableUI() {
+        view.backgroundColor = .systemGroupedBackground
+
+        tableView.backgroundColor = UIColor(red: 245/255, green: 246/255, blue: 248/255, alpha: 1)
+        tableView.separatorStyle = .none
+        tableView.contentInset = UIEdgeInsets(top: 14, left: 0, bottom: 20, right: 0)
+    }
+
+    // MARK: - Firestore Listener
+    private func startListening() {
         listener?.remove()
 
+        guard let uid = Auth.auth().currentUser?.uid else {
+            rows = []
+            tableView.reloadData()
+            return
+        }
+
         listener = db.collection("requests")
-            .whereField("userId", isEqualTo: demoUserId)
+            .whereField("userId", isEqualTo: uid)
             .order(by: "createdAt", descending: true)
-            .addSnapshotListener { [weak self] snapshot, error in
+            .addSnapshotListener { [weak self] snap, err in
                 guard let self else { return }
 
-                if let error {
-                    print("Firestore listen error:", error)
+                if let err {
+                    print("MyRequests listen error:", err)
                     return
                 }
 
-                guard let snapshot else {
-                    self.requests = []
-                    self.tableView.reloadData()
-                    return
-                }
+                guard let snap else { return }
 
-                self.requests = snapshot.documents.compactMap { doc in
-                    RequestRow.from(doc: doc)
-                }
-
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
+                self.rows = snap.documents.compactMap { RequestRow.from(doc: $0) }
+                DispatchQueue.main.async { self.tableView.reloadData() }
             }
+    }
+
+    // MARK: - Cell UI
+
+    private func styleCard(_ card: UIView) {
+        card.backgroundColor = .white
+        card.layer.cornerRadius = 12
+        card.layer.masksToBounds = true
+    }
+
+    private func styleBadge(_ badge: UIView, dot: UIView) {
+        badge.layer.cornerRadius = 10
+        badge.layer.masksToBounds = true
+
+        dot.layer.cornerRadius = 3
+        dot.layer.masksToBounds = true
     }
 }
 
@@ -84,23 +170,102 @@ final class MyRequestsViewController: UIViewController {
 extension MyRequestsViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        requests.count
+        rows.count
     }
 
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
+        // Storyboard prototype cell identifier MUST be "RequestCell"
         let cell = tableView.dequeueReusableCell(withIdentifier: "RequestCell", for: indexPath)
-        let item = requests[indexPath.row]
 
-        var content = cell.defaultContentConfiguration()
-        content.text = "\(item.campus) - \(item.building) - \(item.classroom)"
+        let row = rows[indexPath.row]
 
-        let dateText = item.createdAt.formatted(date: .abbreviated, time: .shortened)
-        content.secondaryText = "\(dateText) • Status: \(item.status)"
-
-        cell.contentConfiguration = content
+        cell.selectionStyle = .none
+        cell.backgroundColor = .clear
         cell.accessoryType = .disclosureIndicator
+
+        // ----- Card container (created in code; works even if storyboard cell is empty)
+        let cardTag = 7001
+        cell.contentView.viewWithTag(cardTag)?.removeFromSuperview()
+
+        let card = UIView()
+        card.tag = cardTag
+        styleCard(card)
+        cell.contentView.addSubview(card)
+
+        card.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            card.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
+            card.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 10),
+            card.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -10)
+        ])
+
+        // ----- Title
+        let titleLabel = UILabel()
+        titleLabel.text = row.title
+        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.numberOfLines = 2
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // ----- Submitted
+        let submittedLabel = UILabel()
+        submittedLabel.text = "Submitted: \(row.createdText)"
+        submittedLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        submittedLabel.textColor = .secondaryLabel
+        submittedLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // ----- Badge
+        let badge = UIView()
+        badge.backgroundColor = row.status.badgeBG
+        badge.translatesAutoresizingMaskIntoConstraints = false
+
+        let dot = UIView()
+        dot.backgroundColor = row.status.dotColor
+        dot.translatesAutoresizingMaskIntoConstraints = false
+
+        let badgeLabel = UILabel()
+        badgeLabel.text = row.status.title
+        badgeLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        badgeLabel.textColor = row.status.badgeText
+        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        badge.addSubview(dot)
+        badge.addSubview(badgeLabel)
+
+        // Style badge corners
+        styleBadge(badge, dot: dot)
+
+        card.addSubview(titleLabel)
+        card.addSubview(submittedLabel)
+        card.addSubview(badge)
+
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -38), // leave space for chevron
+            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+
+            submittedLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            submittedLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            submittedLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+
+            badge.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            badge.topAnchor.constraint(equalTo: submittedLabel.bottomAnchor, constant: 10),
+            badge.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+
+            dot.leadingAnchor.constraint(equalTo: badge.leadingAnchor, constant: 10),
+            dot.centerYAnchor.constraint(equalTo: badge.centerYAnchor),
+            dot.widthAnchor.constraint(equalToConstant: 6),
+            dot.heightAnchor.constraint(equalToConstant: 6),
+
+            badgeLabel.leadingAnchor.constraint(equalTo: dot.trailingAnchor, constant: 6),
+            badgeLabel.trailingAnchor.constraint(equalTo: badge.trailingAnchor, constant: -10),
+            badgeLabel.topAnchor.constraint(equalTo: badge.topAnchor, constant: 4),
+            badgeLabel.bottomAnchor.constraint(equalTo: badge.bottomAnchor, constant: -4)
+        ])
+
         return cell
     }
 }
@@ -108,68 +273,18 @@ extension MyRequestsViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension MyRequestsViewController: UITableViewDelegate {
 
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        120
+    }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        let item = requests[indexPath.row]
-        let msg =
-        """
-        Campus: \(item.campus)
-        Building: \(item.building)
-        Classroom: \(item.classroom)
-
-        Status: \(item.status)
-
-        Description:
-        \(item.problemDescription)
-        """
-
-        let a = UIAlertController(title: "Request Details", message: msg, preferredStyle: .alert)
+        // optional action
+        let r = rows[indexPath.row]
+        let msg = "\(r.title)\n\nSubmitted: \(r.createdText)\nStatus: \(r.status.title)"
+        let a = UIAlertController(title: "Request", message: msg, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
         present(a, animated: true)
-    }
-}
-
-// MARK: - Model used by this screen
-private struct RequestRow {
-    let id: String
-    let campus: String
-    let building: String
-    let classroom: String
-    let problemDescription: String
-    let status: String
-    let createdAt: Date
-    let imageUrl: String?
-
-    static func from(doc: QueryDocumentSnapshot) -> RequestRow? {
-        let data = doc.data()
-
-        let campus = data["campus"] as? String ?? ""
-        let building = data["building"] as? String ?? ""
-        let classroom = data["classroom"] as? String ?? ""
-        let problemDescription = data["problemDescription"] as? String ?? ""
-        let status = data["status"] as? String ?? "submitted"
-        let imageUrl = data["imageUrl"] as? String
-
-        // createdAt is serverTimestamp. It may be nil briefly right after creation.
-        let ts = data["createdAt"] as? Timestamp
-        let createdAt = ts?.dateValue() ?? Date()
-
-        // If key fields are empty, you can decide to drop the row (optional)
-        if campus.isEmpty && building.isEmpty && classroom.isEmpty && problemDescription.isEmpty {
-            // Still return it if you want; I’m filtering totally-empty docs out:
-            return nil
-        }
-
-        return RequestRow(
-            id: doc.documentID,
-            campus: campus,
-            building: building,
-            classroom: classroom,
-            problemDescription: problemDescription,
-            status: status,
-            createdAt: createdAt,
-            imageUrl: imageUrl
-        )
     }
 }

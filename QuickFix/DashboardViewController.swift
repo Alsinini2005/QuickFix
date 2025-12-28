@@ -11,13 +11,18 @@ import UIKit
 
 final class DashboardViewController: UIViewController {
 
+    @IBOutlet weak var welcomeLabel: UILabel!
+    
+    
+    
     @IBOutlet weak var pendingCardView: UIView!
     
+    
     @IBOutlet weak var onProcessCardView: UIView!
+   
     
     @IBOutlet weak var monthlyCardView: UIView!
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
         styleCards()
@@ -49,3 +54,5 @@ final class DashboardViewController: UIViewController {
         v.layer.shadowColor = nil
     }
 }
+
+
