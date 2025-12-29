@@ -48,9 +48,10 @@ private struct RequestRow {
 
     static func from(doc: QueryDocumentSnapshot) -> RequestRow? {
         let d = doc.data()
+
         guard
             let title = d["title"] as? String,
-            let createdAt = d["createdAt"] as? Timestamp,
+            let ts = d["createdAt"] as? Timestamp,
             let statusStr = d["status"] as? String,
             let status = RequestStatus(rawValue: statusStr)
         else { return nil }
@@ -58,7 +59,7 @@ private struct RequestRow {
         return RequestRow(
             id: doc.documentID,
             title: title,
-            createdAt: createdAt.dateValue(),
+            createdAt: ts.dateValue(),
             status: status
         )
     }
@@ -77,6 +78,7 @@ final class MyRequestsViewController: UIViewController {
 
     // MARK: - Data
     private var rows: [RequestRow] = []
+    private var numericUserId: Int?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -119,9 +121,15 @@ final class MyRequestsViewController: UIViewController {
         tableView.backgroundColor = UIColor(red: 245/255, green: 246/255, blue: 248/255, alpha: 1)
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: 14, left: 0, bottom: 20, right: 0)
+
+        // If your cell isn't found (safety)
+        if tableView.dequeueReusableCell(withIdentifier: "RequestCell") == nil {
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "RequestCell")
+        }
     }
 
     // MARK: - Firestore Listener
+
     private func startListening() {
         listener?.remove()
 
@@ -133,25 +141,31 @@ final class MyRequestsViewController: UIViewController {
 
         Task { [weak self] in
             guard let self else { return }
-            do {
-                // Your requests collection uses numeric userId.
-                let numericUserId = try await self.fetchNumericUserId(authUid: authUid)
 
+            do {
+                // requests collection uses numeric userId
+                let numericUserId = try await self.fetchNumericUserId(authUid: authUid)
+                self.numericUserId = numericUserId
+
+                // Move listener creation OUTSIDE nested closures problems
+                self.listener?.remove()
                 self.listener = self.db.collection("requests")
                     .whereField("userId", isEqualTo: numericUserId)
                     .order(by: "createdAt", descending: true)
                     .addSnapshotListener { [weak self] snap, err in
-                guard let self else { return }
+                        guard let self else { return }
 
-                if let err {
-                    print("MyRequests listen error:", err)
-                    return
-                }
+                        if let err {
+                            print("MyRequests listen error:", err)
+                            return
+                        }
 
-                guard let snap else { return }
+                        let docs = snap?.documents ?? []
+                        self.rows = docs.compactMap { RequestRow.from(doc: $0) }
 
-                        self.rows = snap.documents.compactMap { RequestRow.from(doc: $0) }
-                        DispatchQueue.main.async { self.tableView.reloadData() }
+                        DispatchQueue.main.async {
+                            self.tableView.reloadData()
+                        }
                     }
 
             } catch {
@@ -171,7 +185,11 @@ final class MyRequestsViewController: UIViewController {
         if let n = data["userId"] as? Int64 { return Int(n) }
         if let n = data["userId"] as? Double { return Int(n) }
 
-        throw NSError(domain: "User", code: 0, userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users collection."])
+        throw NSError(
+            domain: "User",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users collection."]
+        )
     }
 
     // MARK: - Cell UI
@@ -189,6 +207,12 @@ final class MyRequestsViewController: UIViewController {
         dot.layer.cornerRadius = 3
         dot.layer.masksToBounds = true
     }
+
+    private func showSimpleAlert(_ title: String, _ msg: String) {
+        let a = UIAlertController(title: title, message: msg, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: "OK", style: .default))
+        present(a, animated: true)
+    }
 }
 
 // MARK: - UITableViewDataSource
@@ -203,17 +227,17 @@ extension MyRequestsViewController: UITableViewDataSource {
 
         // Storyboard prototype cell identifier MUST be "RequestCell"
         let cell = tableView.dequeueReusableCell(withIdentifier: "RequestCell", for: indexPath)
-
         let row = rows[indexPath.row]
 
         cell.selectionStyle = .none
         cell.backgroundColor = .clear
         cell.accessoryType = .disclosureIndicator
 
-        // ----- Card container (created in code; works even if storyboard cell is empty)
+        // reuse-safe cleanup
         let cardTag = 7001
         cell.contentView.viewWithTag(cardTag)?.removeFromSuperview()
 
+        // ----- Card container
         let card = UIView()
         card.tag = cardTag
         styleCard(card)
@@ -260,7 +284,6 @@ extension MyRequestsViewController: UITableViewDataSource {
         badge.addSubview(dot)
         badge.addSubview(badgeLabel)
 
-        // Style badge corners
         styleBadge(badge, dot: dot)
 
         card.addSubview(titleLabel)
@@ -269,7 +292,7 @@ extension MyRequestsViewController: UITableViewDataSource {
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -38), // leave space for chevron
+            titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -38),
             titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
 
             submittedLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
@@ -305,11 +328,9 @@ extension MyRequestsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        // optional action
+        // optional
         let r = rows[indexPath.row]
         let msg = "\(r.title)\n\nSubmitted: \(r.createdText)\nStatus: \(r.status.title)"
-        let a = UIAlertController(title: "Request", message: msg, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        showSimpleAlert("Request", msg)
     }
 }

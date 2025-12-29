@@ -1,11 +1,11 @@
 //
-//  Requests.swift
+//  AddNewRequestViewController.swift
 //  QuickFix
 //
 //  Add New Request screen
 //  ✅ Campus is a UIButton (picker via ActionSheet)
 //  ✅ Submit saves to Firestore so it appears in MyRequestsViewController
-//     - userId = Auth uid
+//     - userId = numeric (read from users/{authUid}.userId)
 //     - status = "pending"
 //     - createdAt = Timestamp(date: Date())
 //  ✅ Optional image upload to Cloudinary (only if configured)
@@ -15,18 +15,16 @@ import UIKit
 import FirebaseAuth
 import FirebaseFirestore
 
-final class Requests: UIViewController {
+final class AddNewRequestViewController: UIViewController {
 
     // MARK: - Outlets (connect in storyboard)
-
     @IBOutlet weak var campusTextField: UIButton!          // Button title shows selected campus
     @IBOutlet weak var buildingTextField: UITextField!
     @IBOutlet weak var classroomTextField: UITextField!
-    @IBOutlet weak var descriptionTextView: UITextField!   // if you want multiline, change storyboard to UITextView
+    @IBOutlet weak var descriptionTextView: UITextField!   // if multiline -> change storyboard to UITextView
     @IBOutlet weak var previewImageView: UIImageView?      // optional
 
     // MARK: - Campus options
-    // As requested: ( Campus A - Campus B - Dilmonia )
     private let campusOptions = ["Campus A", "Campus B", "Dilmonia"]
 
     // MARK: - Cloudinary (OPTIONAL)
@@ -46,7 +44,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - UI
-
     private func setupUI() {
         // default campus title
         if (campusTextField.title(for: .normal) ?? "").isEmpty {
@@ -69,7 +66,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Campus (UIButton)
-
     @IBAction func campusButtonTapped(_ sender: UIButton) {
         let sheet = UIAlertController(title: "Select Campus", message: nil, preferredStyle: .actionSheet)
 
@@ -91,7 +87,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Actions
-
     @IBAction func submitButtonTapped(_ sender: UIButton) {
         sender.isEnabled = false
         view.isUserInteractionEnabled = false
@@ -107,8 +102,7 @@ final class Requests: UIViewController {
                     return
                 }
 
-                // Your Firestore schema uses userId as a NUMBER.
-                // We read it from: users/{authUid}.userId
+                // Firestore schema uses userId as NUMBER -> read from users/{authUid}.userId
                 let numericUserId = try await fetchNumericUserId(authUid: uid)
 
                 let campus = campusTextField.title(for: .normal) ?? ""
@@ -124,7 +118,7 @@ final class Requests: UIViewController {
                 // Optional image upload
                 let imageUrl: String? = try await uploadToCloudinaryIfConfigured(image: pickedImage)
 
-                // Save request (matches MyRequestsViewController expected fields)
+                // Save request
                 try await saveToFirestore(
                     userId: numericUserId,
                     campus: campus,
@@ -137,11 +131,7 @@ final class Requests: UIViewController {
                 await MainActor.run {
                     sender.isEnabled = true
                     self.view.isUserInteractionEnabled = true
-
-                    // Go back so user sees it appear in My Requests (listener will update)
                     self.navigationController?.popViewController(animated: true)
-                    // If presented modally instead:
-                    // self.dismiss(animated: true)
                 }
 
             } catch {
@@ -159,7 +149,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Validation
-
     private func validate(campus: String, building: Int, classroom: Int, desc: String) throws {
         let campusT = campus.trimmingCharacters(in: .whitespacesAndNewlines)
         let descT = desc.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -176,7 +165,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Firestore
-
     private func saveToFirestore(
         userId: Int,
         campus: String,
@@ -186,17 +174,16 @@ final class Requests: UIViewController {
         imageUrl: String?
     ) async throws {
 
-        // NOTE:
-        // MyRequestsViewController uses "title", "status", "createdAt", "userId"
-        // Here we use the description as title because your UI doesn't have a separate title field.
-        // If you later add a "titleTextField", set "title" to that field instead.
+        let cleanCampus = campus.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanDesc = desc.trimmingCharacters(in: .whitespacesAndNewlines)
+
         let payload: [String: Any] = [
             "userId": userId,
-            "title": desc.trimmingCharacters(in: .whitespacesAndNewlines),
-            "campus": campus.trimmingCharacters(in: .whitespacesAndNewlines),
+            "title": cleanDesc, // using description as title
+            "campus": cleanCampus,
             "building": building,
             "classroom": classroom,
-            "problemDescription": desc.trimmingCharacters(in: .whitespacesAndNewlines),
+            "problemDescription": cleanDesc,
             "imageUrl": imageUrl as Any,
             "status": "pending",
             "createdAt": Timestamp(date: Date())
@@ -206,12 +193,9 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Cloudinary (optional)
-
     private func uploadToCloudinaryIfConfigured(image: UIImage?) async throws -> String? {
-        // no image selected
         guard let image else { return nil }
 
-        // not configured -> skip upload
         if cloudName == "YOUR_CLOUD_NAME" || uploadPreset == "YOUR_UNSIGNED_PRESET" {
             return nil
         }
@@ -257,7 +241,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Image Picker
-
     private func presentImagePicker() {
         guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
             showAlert(title: "Error", message: "Photo Library not available.")
@@ -271,8 +254,7 @@ final class Requests: UIViewController {
         present(picker, animated: true)
     }
 
-    // MARK: - Helpers
-
+    // MARK: - Alerts
     private func showAlert(title: String, message: String) {
         let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
@@ -280,7 +262,6 @@ final class Requests: UIViewController {
     }
 
     // MARK: - Helpers (numeric fields)
-
     private func parseIntField(_ text: String, fieldName: String) throws -> Int {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let n = Int(trimmed), n > 0 else {
@@ -311,7 +292,7 @@ final class Requests: UIViewController {
 }
 
 // MARK: - UIImagePickerControllerDelegate
-extension Requests: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+extension AddNewRequestViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true)
