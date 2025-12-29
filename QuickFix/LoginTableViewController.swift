@@ -33,7 +33,7 @@ class LoginTableViewController: UITableViewController {
         let pattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
         return email.range(of: pattern, options: .regularExpression) != nil
     }
-    
+
     @IBAction func forgotPasswordTapped(_ sender: UIButton) {
 
         let alert = UIAlertController(
@@ -42,9 +42,10 @@ class LoginTableViewController: UITableViewController {
             preferredStyle: .alert
         )
 
-        alert.addTextField { textField in
-            textField.placeholder = "Email"
-            textField.keyboardType = .emailAddress
+        alert.addTextField {
+            $0.placeholder = "Email"
+            $0.keyboardType = .emailAddress
+            $0.autocapitalizationType = .none
         }
 
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
@@ -52,24 +53,21 @@ class LoginTableViewController: UITableViewController {
         alert.addAction(UIAlertAction(title: "Send", style: .default) { _ in
             guard let email = alert.textFields?.first?.text,
                   !email.isEmpty else {
-                self.showAlert(title: "Error", message: "Please enter your email")
+                self.showAlert(title: "Error", message: "Email is required")
                 return
             }
 
             Auth.auth().sendPasswordReset(withEmail: email) { error in
-                if let error = error {
-                    self.showAlert(title: "Error", message: error.localizedDescription)
-                } else {
-                    self.showAlert(
-                        title: "Email Sent",
-                        message: "Check your email to reset your password"
-                    )
-                }
+                self.showAlert(
+                    title: "If this email exists",
+                    message: "You will receive a password reset email shortly."
+                )
             }
         })
 
         present(alert, animated: true)
     }
+
 
     
     @IBAction func loginButtonTapped(_ sender: UIButton) {
