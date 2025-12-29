@@ -353,6 +353,7 @@
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9hz-ep-8rl">
                                         <rect key="frame" x="64" y="68" width="265" height="38.333333333333343"/>
+                                        <size key="titleShadowOffset" width="4" height="4"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="tinted" title="View Recent Request"/>
                                         <connections>

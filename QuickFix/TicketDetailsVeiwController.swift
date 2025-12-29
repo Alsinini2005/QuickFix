@@ -1,17 +1,14 @@
-//
-//  TicketDetailsVeiwController.swift
-//  QuickFix
-//
-//  Created by BP-36-212-02 on 25/12/2025.
-//
-
-import Foundation
 import UIKit
+import FirebaseFirestore
 
 final class TicketDetailsViewController: UIViewController {
 
+    // MARK: - MUST be set before opening this screen
+    // Pass Firestore document id of the request
+    var requestId: String!
+
     // MARK: - Outlets (connect these)
-    @IBOutlet private weak var containerView: UIView!   // wrap the stack view in a UIView
+    @IBOutlet private weak var containerView: UIView!
     @IBOutlet private weak var stackView: UIStackView!
 
     @IBOutlet private weak var imageTitleLabel: UILabel!
@@ -37,11 +34,31 @@ final class TicketDetailsViewController: UIViewController {
     @IBOutlet private weak var createdTitle: UILabel!
     @IBOutlet private weak var urgencyTitle: UILabel!
 
+    // MARK: - Firebase
+    private let db = Firestore.firestore()
+    private var listener: ListenerRegistration?
+
+    private lazy var dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d, yyyy"
+        return f
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavBar()
         styleScreen()
+
+        // safety
+        if requestId == nil || requestId.isEmpty {
+            print("❌ TicketDetailsViewController: requestId not set")
+            return
+        }
+
+        startListeningTicket()
     }
+
+    deinit { listener?.remove() }
 
     // MARK: - Navigation Bar
     private func setupNavBar() {
@@ -113,6 +130,92 @@ final class TicketDetailsViewController: UIViewController {
         assignButton.layer.cornerRadius = 10
     }
 
+    // MARK: - Firestore
+    private func startListeningTicket() {
+        listener?.remove()
+
+        listener = db.collection("requests")
+            .document(requestId)
+            .addSnapshotListener { [weak self] snap, error in
+                guard let self else { return }
+
+                if let error {
+                    print("❌ Ticket details listen error:", error)
+                    return
+                }
+
+                guard let data = snap?.data() else {
+                    print("❌ No ticket data for id:", self.requestId ?? "nil")
+                    return
+                }
+
+                self.applyTicketData(data, docId: snap?.documentID ?? self.requestId)
+            }
+    }
+
+    private func applyTicketData(_ data: [String: Any], docId: String) {
+        // DB fields you showed:
+        // title (String), campus (String), building (Int), status (String), createdAt (Timestamp)
+
+        let title = (data["title"] as? String) ?? "-"
+        let campus = (data["campus"] as? String) ?? "-"
+        let statusRaw = (data["status"] as? String) ?? "pending"
+
+        let buildingText: String
+        if let b = data["building"] as? Int {
+            buildingText = "\(b)"
+        } else if let b = data["building"] as? String {
+            buildingText = b
+        } else {
+            buildingText = "-"
+        }
+
+        let createdText: String
+        if let ts = data["createdAt"] as? Timestamp {
+            createdText = dateFormatter.string(from: ts.dateValue())
+        } else {
+            createdText = "-"
+        }
+
+        // urgency OPTIONAL
+        let urgency = (data["urgency"] as? String) ?? "Normal"
+
+        // Fill labels
+        ticketIdLabel.text = docId
+        ticketNameLabel.text = title
+        campusLabel.text = campus
+        buildingLabel.text = buildingText
+        statusLabel.text = prettyStatus(statusRaw)
+        createdLabel.text = createdText
+        urgencyLabel.text = urgency
+
+        // image OPTIONAL (imageURL)
+        if let urlString = data["imageURL"] as? String, !urlString.isEmpty {
+            loadImage(from: urlString)
+        } else {
+            ticketImageView.image = nil
+        }
+    }
+
+    private func prettyStatus(_ status: String) -> String {
+        switch status {
+        case "pending": return "Pending"
+        case "in_progress": return "In Progress"
+        case "completed": return "Completed"
+        default: return status
+        }
+    }
+
+    private func loadImage(from urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+
+        // Simple loader without extra libraries
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            guard let self, let data, let img = UIImage(data: data) else { return }
+            DispatchQueue.main.async { self.ticketImageView.image = img }
+        }.resume()
+    }
+
     // MARK: - Separators between rows
     private func addSeparators() {
         for (index, row) in stackView.arrangedSubviews.enumerated() {
@@ -131,5 +234,11 @@ final class TicketDetailsViewController: UIViewController {
                 separator.heightAnchor.constraint(equalToConstant: 1)
             ])
         }
+    }
+
+    // MARK: - Assign button (optional)
+    @IBAction private func didTapAssign(_ sender: UIButton) {
+        // put your assign logic / segue here
+        print("Assign tapped for request:", requestId ?? "nil")
     }
 }
