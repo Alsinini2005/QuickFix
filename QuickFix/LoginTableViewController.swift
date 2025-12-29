@@ -34,6 +34,44 @@ class LoginTableViewController: UITableViewController {
         return email.range(of: pattern, options: .regularExpression) != nil
     }
     
+    @IBAction func forgotPasswordTapped(_ sender: UIButton) {
+
+        let alert = UIAlertController(
+            title: "Forgot Password",
+            message: "Enter your email to reset your password",
+            preferredStyle: .alert
+        )
+
+        alert.addTextField { textField in
+            textField.placeholder = "Email"
+            textField.keyboardType = .emailAddress
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        alert.addAction(UIAlertAction(title: "Send", style: .default) { _ in
+            guard let email = alert.textFields?.first?.text,
+                  !email.isEmpty else {
+                self.showAlert(title: "Error", message: "Please enter your email")
+                return
+            }
+
+            Auth.auth().sendPasswordReset(withEmail: email) { error in
+                if let error = error {
+                    self.showAlert(title: "Error", message: error.localizedDescription)
+                } else {
+                    self.showAlert(
+                        title: "Email Sent",
+                        message: "Check your email to reset your password"
+                    )
+                }
+            }
+        })
+
+        present(alert, animated: true)
+    }
+
+    
     @IBAction func loginButtonTapped(_ sender: UIButton) {
     
     hideErrors()

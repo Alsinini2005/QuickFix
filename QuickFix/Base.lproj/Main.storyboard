@@ -138,6 +138,9 @@
                                                     <buttonConfiguration key="configuration" style="plain" title="Forget Password?">
                                                         <fontDescription key="titleFontDescription" type="boldSystem" pointSize="14"/>
                                                     </buttonConfiguration>
+                                                    <connections>
+                                                        <action selector="forgotPasswordTapped:" destination="Ysd-ve-aPl" eventType="touchUpInside" id="3HS-jO-pid"/>
+                                                    </connections>
                                                 </button>
                                             </subviews>
                                             <constraints>
@@ -971,7 +974,7 @@ support@quickfix.com</string>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hwl-Fv-KZp" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1040" y="-1646"/>
+            <point key="canvasLocation" x="-1067" y="-1650"/>
         </scene>
         <!--Register-->
         <scene sceneID="FTX-YH-P22">
@@ -1232,10 +1235,10 @@ support@quickfix.com</string>
             </objects>
             <point key="canvasLocation" x="-5443" y="-323"/>
         </scene>
-        <!--Dashboard-->
+        <!--Dashboard Navigator-->
         <scene sceneID="UGI-ea-rw0">
             <objects>
-                <navigationController id="qkg-mf-uNc" sceneMemberID="viewController">
+                <navigationController title="Dashboard Navigator" id="qkg-mf-uNc" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Dashboard" image="house" catalog="system" id="R29-Wc-6fQ"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="YYM-5v-fDq">
                         <rect key="frame" x="0.0" y="124" width="402" height="44"/>
