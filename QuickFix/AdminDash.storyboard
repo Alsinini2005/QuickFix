@@ -966,7 +966,7 @@
                                     <constraint firstAttribute="height" constant="128" id="yed-SW-JR8"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hJa-02-NhY">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hJa-02-NhY" customClass="DonutChartView" customModule="QuickFix" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="412" width="393" height="323"/>
                                 <color key="backgroundColor" red="0.89803922179999995" green="0.89803922179999995" blue="0.91372549530000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             </view>
@@ -990,12 +990,15 @@
                     <tabBarItem key="tabBarItem" title="Dashboard" selectedImage="house.fill" catalog="system" id="jD7-EH-s1R"/>
                     <navigationItem key="navigationItem" title="Dashboard" id="4ai-1m-GvV"/>
                     <connections>
+                        <outlet property="completedCountLabel" destination="qYh-rk-OeZ" id="eAe-gO-y8D"/>
                         <outlet property="completedThisMonthLabel" destination="qYh-rk-OeZ" id="a2m-IW-3S3"/>
+                        <outlet property="donutContainerView" destination="hJa-02-NhY" id="fpB-df-99o"/>
                         <outlet property="inProgressCountLabel" destination="w0m-YB-Wdf" id="fOG-BP-i63"/>
-                        <outlet property="monthlyCardView" destination="NSg-70-4Ri" id="wOL-fW-oGV"/>
-                        <outlet property="onProcessCardView" destination="YkO-qO-CIz" id="CJw-Hs-dhR"/>
-                        <outlet property="pendingCardView" destination="NvD-pY-5lr" id="sJ6-rk-8Ii"/>
-                        <outlet property="pendingCountLabel" destination="jrQ-C5-KQu" id="aHw-YB-BQD"/>
+                        <outlet property="monthlyCardView" destination="yIJ-UG-Nsc" id="oJs-Pm-N0t"/>
+                        <outlet property="onProcessCardView" destination="Zgx-eo-anH" id="vDH-CO-2H0"/>
+                        <outlet property="onProcessCountLabel" destination="w0m-YB-Wdf" id="GZc-6W-uqa"/>
+                        <outlet property="pendingCardView" destination="lB8-Lh-YZM" id="gAV-YJ-fgL"/>
+                        <outlet property="pendingCountLabel" destination="jrQ-C5-KQu" id="57S-dR-Vp7"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XNW-9D-MZh" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

@@ -8,19 +8,26 @@ final class DashboardViewController: UIViewController {
     @IBOutlet weak var onProcessCardView: UIView!
     @IBOutlet weak var monthlyCardView: UIView!
 
-    // These are the "0" labels
-    @IBOutlet private weak var pendingCountLabel: UILabel!
-    @IBOutlet private weak var inProgressCountLabel: UILabel!
-    @IBOutlet private weak var completedThisMonthLabel: UILabel!
+    // ✅ Add these labels in storyboard + connect
+    @IBOutlet weak var pendingCountLabel: UILabel!
+    @IBOutlet weak var onProcessCountLabel: UILabel!
+    @IBOutlet weak var completedCountLabel: UILabel!
+
+    // ✅ Add a UIView placeholder in storyboard for donut + connect
+    @IBOutlet weak var donutContainerView: UIView!
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
+    // MARK: - Donut
+    private let donutView = DonutChartView()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         styleCards()
-        startListeningCountsForAdmin()
+        setupDonut()
+        startListeningCounts()
     }
 
     deinit { listener?.remove() }
@@ -39,71 +46,64 @@ final class DashboardViewController: UIViewController {
         v.layer.borderColor = UIColor.systemGray4.cgColor
         v.layer.masksToBounds = true
         v.layer.shadowOpacity = 0
-        v.layer.shadowRadius = 0
-        v.layer.shadowOffset = .zero
-        v.layer.shadowColor = nil
     }
 
-    // MARK: - Firestore counting (ADMIN: all requests)
-    private func startListeningCountsForAdmin() {
+    private func setupDonut() {
+        donutContainerView.backgroundColor = .clear
+
+        donutView.translatesAutoresizingMaskIntoConstraints = false
+        donutContainerView.addSubview(donutView)
+
+        NSLayoutConstraint.activate([
+            donutView.leadingAnchor.constraint(equalTo: donutContainerView.leadingAnchor),
+            donutView.trailingAnchor.constraint(equalTo: donutContainerView.trailingAnchor),
+            donutView.topAnchor.constraint(equalTo: donutContainerView.topAnchor),
+            donutView.bottomAnchor.constraint(equalTo: donutContainerView.bottomAnchor)
+        ])
+
+        // initial
+        donutView.setData(pending: 0, inProgress: 0, completed: 0)
+    }
+
+    // MARK: - Firestore
+    private func startListeningCounts() {
         listener?.remove()
 
-        // Admin: no technician filter, listen to ALL requests
-        let query = db.collection("requests")
+        // Listen to all requests and compute counts locally (simple + reliable)
+        listener = db.collection("requests")
+            .addSnapshotListener { [weak self] snap, err in
+                guard let self else { return }
+                if let err {
+                    print("Dashboard listen error:", err)
+                    return
+                }
 
-        listener = query.addSnapshotListener { [weak self] snapshot, error in
-            guard let self else { return }
+                let docs = snap?.documents ?? []
+                var pending = 0
+                var inProgress = 0
+                var completed = 0
 
-            if let error {
-                print("Admin Dashboard listen error:", error)
-                return
-            }
-
-            let docs = snapshot?.documents ?? []
-
-            var pending = 0
-            var inProgress = 0
-            var completedThisMonth = 0
-
-            let now = Date()
-            let cal = Calendar.current
-            let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: now)) ?? now
-            let nextMonth = cal.date(byAdding: .month, value: 1, to: monthStart) ?? now
-
-            for d in docs {
-                let data = d.data()
-                let status = (data["status"] as? String) ?? "pending"
-
-                switch status {
-                case "pending":
-                    pending += 1
-
-                case "in_progress":
-                    inProgress += 1
-
-                case "completed":
-                    // ✅ best: use completedAt if exists
-                    if let ts = data["completedAt"] as? Timestamp {
-                        let date = ts.dateValue()
-                        if date >= monthStart && date < nextMonth {
-                            completedThisMonth += 1
-                        }
-                    } else if let ts = data["createdAt"] as? Timestamp {
-                        // fallback: if you don't store completedAt yet
-                        let date = ts.dateValue()
-                        if date >= monthStart && date < nextMonth {
-                            completedThisMonth += 1
-                        }
+                for d in docs {
+                    let status = (d.data()["status"] as? String) ?? "pending"
+                    switch status {
+                    case "pending":
+                        pending += 1
+                    case "in_progress":
+                        inProgress += 1
+                    case "completed":
+                        completed += 1
+                    default:
+                        break
                     }
+                }
 
-                default:
-                    break
+                DispatchQueue.main.async {
+                    self.pendingCountLabel.text = "\(pending)"
+                    self.onProcessCountLabel.text = "\(inProgress)"
+                    self.completedCountLabel.text = "\(completed)"
+
+                    self.donutView.setData(pending: pending, inProgress: inProgress, completed: completed)
                 }
             }
-
-            self.pendingCountLabel.text = "\(pending)"
-            self.inProgressCountLabel.text = "\(inProgress)"
-            self.completedThisMonthLabel.text = "\(completedThisMonth)"
-        }
     }
 }

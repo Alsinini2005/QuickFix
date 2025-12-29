@@ -1,22 +1,8 @@
-//
-//  YearlyReportViewController.swift
-//  QuickFix
-//
-//  Created by BP-36-212-02 on 25/12/2025.
-//
-
-import Foundation
 import UIKit
 import FirebaseFirestore
 
-// Yearly report screen (same UI as your MonthlyReportListViewController)
-// IMPORTANT in Storyboard:
-// 1) Set the TableView to Dynamic Prototypes (NOT Static Content)
-// 2) Prototype cell Identifier = "ReportCell"
-// 3) Connect tableView outlet
-
 final class YearlyReportViewController: UIViewController {
-
+    @objc var reportId: Int = 0
     @IBOutlet weak var tableView: UITableView!
 
     private let db = Firestore.firestore()
@@ -32,7 +18,6 @@ final class YearlyReportViewController: UIViewController {
 
         setupNavBar()
         setupTableUI()
-
         startListening()
     }
 
@@ -41,7 +26,7 @@ final class YearlyReportViewController: UIViewController {
     // MARK: - UI
 
     private func setupNavBar() {
-        title = "Technician Performance" // change to "Yearly Report" if you want
+        title = "Technician Performance"
 
         let barColor = UIColor(red: 44/255, green: 70/255, blue: 92/255, alpha: 1)
 
@@ -68,7 +53,7 @@ final class YearlyReportViewController: UIViewController {
 
     private func applyCardStyle(to cell: UITableViewCell) {
         cell.backgroundColor = .clear
-        cell.selectionStyle = .none
+        cell.selectionStyle = .default
 
         cell.contentView.backgroundColor = UIColor(white: 0.95, alpha: 1)
         cell.contentView.layer.cornerRadius = 10
@@ -96,16 +81,22 @@ final class YearlyReportViewController: UIViewController {
                     return
                 }
 
-                guard let snapshot else {
-                    self.reports = []
-                    DispatchQueue.main.async { self.tableView.reloadData() }
-                    return
-                }
+                let docs = snapshot?.documents ?? []
+                self.reports = docs.compactMap { AdminReportRow.from(doc: $0) }
 
-                self.reports = snapshot.documents.compactMap { AdminReportRow.from(doc: $0) }
                 DispatchQueue.main.async { self.tableView.reloadData() }
             }
     }
+
+    // MARK: - Navigation
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard segue.identifier == "ShowYearlyReportFull",
+              let reportNumber = sender as? Int else { return }
+
+        segue.destination.setValue(reportNumber, forKey: "reportId")
+    }
+
 }
 
 // MARK: - UITableViewDataSource
@@ -126,42 +117,53 @@ extension YearlyReportViewController: UITableViewDataSource {
         // reuse-safe cleanup
         cell.contentView.viewWithTag(1001)?.removeFromSuperview()
         cell.contentView.viewWithTag(1002)?.removeFromSuperview()
+        cell.contentView.viewWithTag(1003)?.removeFromSuperview()
 
-        let nameLabel = UILabel()
-        nameLabel.tag = 1001
-        nameLabel.text = "Yearly Report"
-        nameLabel.textColor = .label
-        nameLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        nameLabel.numberOfLines = 1
+        // Title
+        let titleLabel = UILabel()
+        titleLabel.tag = 1001
+        titleLabel.text = "Yearly Report #\(r.reportId)"
+        titleLabel.textColor = .label
+        titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        titleLabel.numberOfLines = 1
 
+        // Big number (Completed)
         let bigNumberLabel = UILabel()
         bigNumberLabel.tag = 1002
-
-        // Pick what you want to show big:
-        // If your yearly report totals are inside totals.assigned/resolved, this is fine.
-        // Change to r.assigned if you prefer.
-        bigNumberLabel.text = "\(r.resolved)"
+        bigNumberLabel.text = "\(r.completed)"
         bigNumberLabel.textColor = .label
-        bigNumberLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        bigNumberLabel.font = .systemFont(ofSize: 22, weight: .bold)
 
-        cell.contentView.addSubview(nameLabel)
+        // Small subtitle (period)
+        let periodLabel = UILabel()
+        periodLabel.tag = 1003
+        periodLabel.text = "\(r.periodStartText) → \(r.periodEndText)"
+        periodLabel.textColor = .secondaryLabel
+        periodLabel.font = .systemFont(ofSize: 12, weight: .regular)
+
+        cell.contentView.addSubview(titleLabel)
         cell.contentView.addSubview(bigNumberLabel)
+        cell.contentView.addSubview(periodLabel)
 
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         bigNumberLabel.translatesAutoresizingMaskIntoConstraints = false
+        periodLabel.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            nameLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
-            nameLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 14),
-            nameLabel.trailingAnchor.constraint(lessThanOrEqualTo: cell.contentView.trailingAnchor, constant: -16),
+            titleLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: cell.contentView.trailingAnchor, constant: -16),
 
             bigNumberLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
-            bigNumberLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 6),
-            bigNumberLabel.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -14),
-            bigNumberLabel.trailingAnchor.constraint(lessThanOrEqualTo: cell.contentView.trailingAnchor, constant: -16)
+            bigNumberLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+
+            periodLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+            periodLabel.topAnchor.constraint(equalTo: bigNumberLabel.bottomAnchor, constant: 2),
+            periodLabel.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -12),
+            periodLabel.trailingAnchor.constraint(lessThanOrEqualTo: cell.contentView.trailingAnchor, constant: -16)
         ])
 
-        cell.accessoryType = .none
+        cell.accessoryType = .disclosureIndicator
         return cell
     }
 }
@@ -170,7 +172,7 @@ extension YearlyReportViewController: UITableViewDataSource {
 extension YearlyReportViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        86
+        96
     }
 
     func tableView(_ tableView: UITableView,
@@ -187,21 +189,20 @@ extension YearlyReportViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
 
         let r = reports[indexPath.row]
-        let message = "Period:\n\(r.periodStartText) → \(r.periodEndText)\n\nAssigned: \(r.assigned)\nResolved: \(r.resolved)"
 
-        let a = UIAlertController(title: "Yearly Report", message: message, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        // ✅ open full yearly report page
+        performSegue(withIdentifier: "ShowYearlyReportFull", sender: r.reportId)
     }
 }
 
-// MARK: - Model (same parsing you used)
+// MARK: - Model
 private struct AdminReportRow {
-    let id: String
+    let docId: String
+    let reportId: Int
     let periodStart: Date
     let periodEnd: Date
     let assigned: Int
-    let resolved: Int
+    let completed: Int
 
     var periodStartText: String { periodStart.formatted(date: .abbreviated, time: .omitted) }
     var periodEndText: String { periodEnd.formatted(date: .abbreviated, time: .omitted) }
@@ -209,19 +210,25 @@ private struct AdminReportRow {
     static func from(doc: QueryDocumentSnapshot) -> AdminReportRow? {
         let data = doc.data()
 
-        guard let startTS = data["periodStart"] as? Timestamp,
-              let endTS = data["periodEnd"] as? Timestamp else { return nil }
+        guard
+            let reportId = data["reportId"] as? Int,
+            let startTS = data["periodStart"] as? Timestamp,
+            let endTS = data["periodEnd"] as? Timestamp
+        else { return nil }
 
         let totals = data["totals"] as? [String: Any]
         let assigned = totals?["assigned"] as? Int ?? 0
-        let resolved = totals?["resolved"] as? Int ?? 0
+
+        // ✅ supports both completed (new) and resolved (old)
+        let completed = (totals?["completed"] as? Int) ?? (totals?["resolved"] as? Int ?? 0)
 
         return AdminReportRow(
-            id: doc.documentID,
+            docId: doc.documentID,
+            reportId: reportId,
             periodStart: startTS.dateValue(),
             periodEnd: endTS.dateValue(),
             assigned: assigned,
-            resolved: resolved
+            completed: completed
         )
     }
 }

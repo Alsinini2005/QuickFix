@@ -30,10 +30,11 @@ final class AdminReportViewController: UIViewController {
     }
 
     private func configurePickers() {
-        // Optional safety
         let today = Date()
+
         monthlyFromPicker.maximumDate = today
         monthlyToPicker.maximumDate = today
+
         yearlyFromPicker.maximumDate = today
         yearlyToPicker.maximumDate = today
     }
@@ -44,6 +45,8 @@ final class AdminReportViewController: UIViewController {
     @IBAction func generateMonthlyTapped(_ sender: UIButton) {
         Task {
             sender.isEnabled = false
+            defer { sender.isEnabled = true }
+
             do {
                 let start = startOfDay(monthlyFromPicker.date)
                 let end = endExclusive(monthlyToPicker.date)
@@ -60,7 +63,6 @@ final class AdminReportViewController: UIViewController {
             } catch {
                 showAlert(title: "Error", message: error.localizedDescription)
             }
-            sender.isEnabled = true
         }
     }
 
@@ -68,6 +70,8 @@ final class AdminReportViewController: UIViewController {
     @IBAction func generateYearlyTapped(_ sender: UIButton) {
         Task {
             sender.isEnabled = false
+            defer { sender.isEnabled = true }
+
             do {
                 let start = startOfDay(yearlyFromPicker.date)
                 let end = endExclusive(yearlyToPicker.date)
@@ -84,7 +88,6 @@ final class AdminReportViewController: UIViewController {
             } catch {
                 showAlert(title: "Error", message: error.localizedDescription)
             }
-            sender.isEnabled = true
         }
     }
 
@@ -96,49 +99,54 @@ final class AdminReportViewController: UIViewController {
         endExclusive: Date
     ) async throws {
 
+        // Pull requests in date range using createdAt
         let snapshot = try await db.collection("requests")
             .whereField("createdAt", isGreaterThanOrEqualTo: Timestamp(date: start))
             .whereField("createdAt", isLessThan: Timestamp(date: endExclusive))
             .getDocuments()
 
         var totalAssigned = 0
-        var totalResolved = 0
+        var totalCompleted = 0
+
+        // technicianId -> ["assigned": Int, "completed": Int]
         var technicianStats: [String: [String: Int]] = [:]
 
         for doc in snapshot.documents {
             let data = doc.data()
 
-            let technicianId = data["technicianId"] as? String ?? "unassigned"
-            let status = data["status"] as? String ?? "submitted"
+            // If no technicianId, consider it unassigned (not counted in technician performance)
+            let technicianId = (data["technicianId"] as? String) ?? "unassigned"
+            let status = (data["status"] as? String) ?? "pending"
 
-            if technicianId != "unassigned" {
-                totalAssigned += 1
+            guard technicianId != "unassigned" else { continue }
 
-                var stats = technicianStats[technicianId] ?? [
-                    "assigned": 0,
-                    "resolved": 0
-                ]
+            totalAssigned += 1
 
-                stats["assigned", default: 0] += 1
+            var stats = technicianStats[technicianId] ?? [
+                "assigned": 0,
+                "completed": 0
+            ]
 
-                if status == "resolved" {
-                    stats["resolved", default: 0] += 1
-                    totalResolved += 1
-                }
+            stats["assigned", default: 0] += 1
 
-                technicianStats[technicianId] = stats
+            // ✅ Your real completed status
+            if status == "completed" {
+                stats["completed", default: 0] += 1
+                totalCompleted += 1
             }
+
+            technicianStats[technicianId] = stats
         }
 
         let payload: [String: Any] = [
-            "type": type,
+            "type": type,  // "monthly" or "yearly"
             "periodStart": Timestamp(date: start),
             "periodEnd": Timestamp(date: endExclusive),
             "createdAt": FieldValue.serverTimestamp(),
             "createdBy": adminId,
             "totals": [
                 "assigned": totalAssigned,
-                "resolved": totalResolved
+                "completed": totalCompleted
             ],
             "byTechnician": technicianStats
         ]
@@ -164,8 +172,11 @@ final class AdminReportViewController: UIViewController {
 
     /// Firestore-friendly exclusive end (next day at 00:00)
     private func endExclusive(_ date: Date) -> Date {
-        Calendar.current.date(byAdding: .day, value: 1,
-                              to: Calendar.current.startOfDay(for: date))!
+        Calendar.current.date(
+            byAdding: .day,
+            value: 1,
+            to: Calendar.current.startOfDay(for: date)
+        )!
     }
 
     private func showAlert(title: String, message: String) {
