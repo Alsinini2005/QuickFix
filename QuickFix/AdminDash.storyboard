@@ -991,9 +991,7 @@
                     <navigationItem key="navigationItem" title="Dashboard" id="4ai-1m-GvV"/>
                     <connections>
                         <outlet property="completedCountLabel" destination="qYh-rk-OeZ" id="eAe-gO-y8D"/>
-                        <outlet property="completedThisMonthLabel" destination="qYh-rk-OeZ" id="a2m-IW-3S3"/>
                         <outlet property="donutContainerView" destination="hJa-02-NhY" id="fpB-df-99o"/>
-                        <outlet property="inProgressCountLabel" destination="w0m-YB-Wdf" id="fOG-BP-i63"/>
                         <outlet property="monthlyCardView" destination="yIJ-UG-Nsc" id="oJs-Pm-N0t"/>
                         <outlet property="onProcessCardView" destination="Zgx-eo-anH" id="vDH-CO-2H0"/>
                         <outlet property="onProcessCountLabel" destination="w0m-YB-Wdf" id="GZc-6W-uqa"/>
