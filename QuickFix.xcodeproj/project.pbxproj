@@ -15,6 +15,7 @@
 		5B5C83512EF94CD900A2AE42 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5B5C83502EF94CD900A2AE42 /* FirebaseDatabase */; };
 		5B5C83532EF94CD900A2AE42 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B5C83522EF94CD900A2AE42 /* FirebaseFirestore */; };
 		5B5C83552EF94CD900A2AE42 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 5B5C83542EF94CD900A2AE42 /* FirebaseMessaging */; };
+		5B8797952F029EDA0090848C /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8797942F029EDA0090848C /* DGCharts */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +55,7 @@
 				5B5C834B2EF94CD900A2AE42 /* FirebaseAuth in Frameworks */,
 				5B5C83472EF94CD900A2AE42 /* FirebaseAnalyticsCore in Frameworks */,
 				5B5C834D2EF94CD900A2AE42 /* FirebaseAuthCombine-Community in Frameworks */,
+				5B8797952F029EDA0090848C /* DGCharts in Frameworks */,
 				5B5C83532EF94CD900A2AE42 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -97,6 +99,7 @@
 				5B5C83502EF94CD900A2AE42 /* FirebaseDatabase */,
 				5B5C83522EF94CD900A2AE42 /* FirebaseFirestore */,
 				5B5C83542EF94CD900A2AE42 /* FirebaseMessaging */,
+				5B8797942F029EDA0090848C /* DGCharts */,
 			);
 			productName = QuickFix;
 			productReference = 5B3FD7602F014F0600F32162 /* QuickFix.app */;
@@ -129,6 +132,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				5B5C83452EF94CD900A2AE42 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				5B8797932F029EDA0090848C /* XCRemoteSwiftPackageReference "Charts" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CC2330A32EDD7EC90031D5DC;
@@ -369,6 +373,14 @@
 				minimumVersion = 12.7.0;
 			};
 		};
+		5B8797932F029EDA0090848C /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ChartsOrg/Charts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -411,6 +423,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5B5C83452EF94CD900A2AE42 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		5B8797942F029EDA0090848C /* DGCharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8797932F029EDA0090848C /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = DGCharts;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

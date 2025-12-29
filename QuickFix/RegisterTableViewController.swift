@@ -62,8 +62,8 @@ final class RegisterTableViewController: UITableViewController {
 
             let userData: [String: Any] = [
                 "name": fullName,
-                "phone": "",          // create empty now for future Edit Profile
-                "usertype": "user"
+                "phone": "",
+                "usertype": "user",
             ]
 
             self.db.collection("users").document(uid).setData(userData, merge: true) { err in
@@ -72,7 +72,6 @@ final class RegisterTableViewController: UITableViewController {
                     return
                 }
 
-                // ✅ Show success alert then go back to Login
                 self.showAlert(title: "Success", message: "Account created successfully!") { [weak self] in
                     self?.navigationController?.popViewController(animated: true)
                 }

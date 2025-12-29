@@ -23,7 +23,7 @@ final class ChangePasswordTableViewController: UITableViewController {
         let newPass = newPasswordTextField.text ?? ""
         let confirm = confirmPasswordTextField.text ?? ""
 
-        // 1) Validate
+
         guard !oldPass.isEmpty else {
             showAlert(title: "Missing Old Password", message: "Please enter your old password.")
             return
@@ -50,7 +50,6 @@ final class ChangePasswordTableViewController: UITableViewController {
             return
         }
 
-        // 2) Re-authenticate (required before changing password)
         let credential = EmailAuthProvider.credential(withEmail: email, password: oldPass)
 
         user.reauthenticate(with: credential) { [weak self] _, error in
@@ -59,14 +58,12 @@ final class ChangePasswordTableViewController: UITableViewController {
                 return
             }
 
-            // 3) Update password
             user.updatePassword(to: newPass) { [weak self] error in
                 if let error = error {
                     self?.showAlert(title: "Update Failed", message: error.localizedDescription)
                     return
                 }
 
-                // 4) Success
                 self?.clearFields()
                 self?.showAlert(title: "Success", message: "Your password has been updated.") {
                     self?.navigationController?.popViewController(animated: true)
@@ -81,7 +78,6 @@ final class ChangePasswordTableViewController: UITableViewController {
         confirmPasswordTextField.text = ""
     }
 
-    // Simple alert
     private func showAlert(title: String, message: String, onOK: (() -> Void)? = nil) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in onOK?() })

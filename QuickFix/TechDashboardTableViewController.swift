@@ -4,47 +4,247 @@
 //
 //  Created by BP-36-212-03 on 28/12/2025.
 //
-
 import UIKit
+import FirebaseAuth
+import FirebaseFirestore
+import DGCharts
 
 final class TechDashboardTableViewController: UITableViewController {
 
-    // MARK: - Bar chart storage
-    private var barHeightConstraints: [NSLayoutConstraint] = []
-    private var chartBuilt = false
+    private let db = Firestore.firestore()
 
-    // MARK: - Lifecycle
+    private var totalAssigned = 0
+    private var inProgressTasks = 0
+    private var completedTasks = 0
+    private var avgResolutionText = "-"
+    private var weeklyCompleted: [Double] = [0, 0, 0, 0]
+
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.separatorStyle = .none
+
+        fetchDashboardDataForTechnician()
+        fetchWeeklyCompletedLast30Days()
+
     }
 
-    // MARK: - TableView
+    private func seed20TasksLast30Days_GuaranteedCompleted() {
+        guard let techUID = Auth.auth().currentUser?.uid else {
+            print("No logged-in user")
+            return
+        }
+
+        let batch = db.batch()
+        let calendar = Calendar.current
+        let now = Date()
+
+        let completedCount = 12
+        let totalCount = 20
+
+        for i in 0..<totalCount {
+            let docRef = db.collection("tasks").document()
+
+            let randomDaysAgo = Int.random(in: 0...29)
+            let assignedDate = calendar.date(byAdding: .day, value: -randomDaysAgo, to: now)!
+
+            let isCompleted = (i < completedCount)
+
+            var data: [String: Any] = [
+                "assignedTo": techUID,
+                "assignedAt": Timestamp(date: assignedDate),
+                "status": isCompleted ? "completed" : "in_progress"
+            ]
+
+            if isCompleted {
+                let completionHours = Int.random(in: 1...72)
+                var completedDate = calendar.date(byAdding: .hour, value: completionHours, to: assignedDate)!
+                if completedDate > now { completedDate = now }
+                data["completedAt"] = Timestamp(date: completedDate)
+            }
+
+            batch.setData(data, forDocument: docRef)
+        }
+
+        batch.commit { [weak self] error in
+            if let error = error {
+                print("❌ Seed failed:", error)
+            } else {
+                print("✅ Seeded 20 tasks (12 completed).")
+                self?.fetchDashboardDataForTechnician()
+                self?.fetchWeeklyCompletedLast30Days()
+            }
+        }
+    }
+
+    private func fetchDashboardDataForTechnician() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("No logged-in user")
+            return
+        }
+
+        db.collection("tasks")
+            .whereField("assignedTo", isEqualTo: uid)
+            .getDocuments { [weak self] snapshot, error in
+                guard let self else { return }
+
+                if let error = error {
+                    print("Firestore error: \(error)")
+                    return
+                }
+
+                let docs = snapshot?.documents ?? []
+
+                var total = 0
+                var inProgress = 0
+                var completed = 0
+
+                var totalResolutionSeconds: TimeInterval = 0
+                var completedWithDates = 0
+
+                for doc in docs {
+                    total += 1
+                    let data = doc.data()
+
+                    let status = (data["status"] as? String ?? "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .lowercased()
+
+                    switch status {
+                    case "in_progress":
+                        inProgress += 1
+
+                    case "completed":
+                        completed += 1
+
+                        if let assignedAt = (data["assignedAt"] as? Timestamp)?.dateValue(),
+                           let completedAt = (data["completedAt"] as? Timestamp)?.dateValue() {
+                            let diff = completedAt.timeIntervalSince(assignedAt)
+                            if diff > 0 {
+                                totalResolutionSeconds += diff
+                                completedWithDates += 1
+                            }
+                        }
+
+                    default:
+                        break
+                    }
+                }
+
+                self.totalAssigned = total
+                self.completedTasks = completed
+                self.inProgressTasks = inProgress
+
+                if completedWithDates > 0 {
+                    let avgSeconds = totalResolutionSeconds / Double(completedWithDates)
+                    self.avgResolutionText = self.formatDuration(avgSeconds)
+                } else {
+                    self.avgResolutionText = "-"
+                }
+
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
+    }
+
+    private func fetchWeeklyCompletedLast30Days() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+
+        let now = Date()
+        let fromDate = Calendar.current.date(byAdding: .day, value: -30, to: now) ?? now
+        let cal = Calendar.current
+
+        db.collection("tasks")
+            .whereField("assignedTo", isEqualTo: uid)
+            .getDocuments { [weak self] snapshot, error in
+                guard let self else { return }
+
+                if let error = error {
+                    print("Weekly fetch error:", error)
+                    return
+                }
+
+                let docs = snapshot?.documents ?? []
+                var buckets: [Double] = [0, 0, 0, 0]
+
+                for doc in docs {
+                    let data = doc.data()
+
+                    let status = (data["status"] as? String ?? "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .lowercased()
+                    guard status == "completed" else { continue }
+
+                    guard let completedAt = (data["completedAt"] as? Timestamp)?.dateValue() else { continue }
+                    guard completedAt >= fromDate && completedAt <= now else { continue }
+
+                    let daysAgoRaw = cal.dateComponents([.day], from: completedAt, to: now).day ?? 0
+                    let daysAgo = max(0, daysAgoRaw)   // protect future timestamps
+                    guard daysAgo <= 30 else { continue }
+
+                    let weekIndex = min(3, max(0, (30 - daysAgo) / 7))
+                    buckets[weekIndex] += 1
+                }
+
+                self.weeklyCompleted = buckets
+                print("weeklyCompleted =", buckets)
+
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
+    }
+
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let totalMinutes = Int(seconds / 60)
+        let days = totalMinutes / (60 * 24)
+        let hours = (totalMinutes % (60 * 24)) / 60
+        let minutes = totalMinutes % 60
+
+        if days > 0 { return "\(days) days" }
+        if hours > 0 { return "\(hours) hrs" }
+        return "\(minutes) mins"
+    }
+
     override func tableView(_ tableView: UITableView,
                             willDisplay cell: UITableViewCell,
                             forRowAt indexPath: IndexPath) {
 
-        // Apply border to all container views
         applyBorderToAllViews(in: cell.contentView)
 
-        // 🔴 CHANGE THIS ROW INDEX if your chart is not row 3
-        if indexPath.row == 3 {
-            buildBarChartIfNeeded(in: cell.contentView)
-            updateBarValues([20, 50, 35, 80])   // Week 1 → Week 4
+        if let totalLbl = cell.contentView.viewWithTag(201) as? UILabel {
+            totalLbl.text = "\(totalAssigned)"
+        }
+        if let inProgressLbl = cell.contentView.viewWithTag(205) as? UILabel {
+            inProgressLbl.text = "\(inProgressTasks)"
+        }
+        if let completedLbl = cell.contentView.viewWithTag(202) as? UILabel {
+            completedLbl.text = "\(completedTasks)"
+        }
+        if let avgLbl = cell.contentView.viewWithTag(204) as? UILabel {
+            avgLbl.text = avgResolutionText
+        }
+
+        if indexPath.row == 3,
+           let chart = cell.contentView.viewWithTag(999) as? BarChartView {
+
+            configureBarChart(chart, values: weeklyCompleted)
+            chart.fitBars = true
+            chart.notifyDataSetChanged()
         }
     }
 
-    // MARK: - Border helper
     private func applyBorderToAllViews(in rootView: UIView) {
+        if rootView.tag == 999 { return }
+
         for subview in rootView.subviews {
+            if subview.tag == 999 { continue }
 
-            // Skip text-based views
             if subview is UILabel ||
-               subview is UIImageView ||
-               subview is UIButton ||
-               subview is UITextField ||
-               subview is UITextView {
-
+                subview is UIImageView ||
+                subview is UIButton ||
+                subview is UITextField ||
+                subview is UITextView {
                 applyBorderToAllViews(in: subview)
                 continue
             }
@@ -58,92 +258,53 @@ final class TechDashboardTableViewController: UITableViewController {
             applyBorderToAllViews(in: subview)
         }
     }
-}
 
-// MARK: - Bar Chart (100% Code)
-extension TechDashboardTableViewController {
-
-    func buildBarChartIfNeeded(in rootView: UIView) {
-        guard chartBuilt == false else { return }
-
-        // Find the chart container
-        guard let chartContainer = rootView.viewWithTag(999) else {
-            print("❌ Chart container not found. Set tag = 999.")
-            return
+    private func configureBarChart(_ chart: BarChartView, values: [Double]) {
+        let entries = values.enumerated().map { index, value in
+            BarChartDataEntry(x: Double(index), y: value)
         }
 
-        chartBuilt = true
-        chartContainer.subviews.forEach { $0.removeFromSuperview() }
-        barHeightConstraints.removeAll()
+        let set = BarChartDataSet(entries: entries, label: "")
+        set.colors = [UIColor.systemGray4]
+        set.drawValuesEnabled = false
+        set.highlightEnabled = true
+        set.highlightColor = UIColor.systemBlue
+        set.highlightLineWidth = 1.0
 
-        let barWidth: CGFloat = 22
-        let spacing: CGFloat = 26
-        let bottomPadding: CGFloat = 28
-        let weeks = ["Week 1", "Week 2", "Week 3", "Week 4"]
+        let data = BarChartData(dataSet: set)
+        data.barWidth = 0.55
+        chart.data = data
 
-        var previousBar: UIView?
+        chart.xAxis.valueFormatter = IndexAxisValueFormatter(values: ["Week 1", "Week 2", "Week 3", "Week 4"])
+        chart.xAxis.labelPosition = .bottom
+        chart.xAxis.drawGridLinesEnabled = false
+        chart.xAxis.drawAxisLineEnabled = false
+        chart.xAxis.granularity = 1
+        chart.xAxis.labelTextColor = .secondaryLabel
 
-        for i in 0..<4 {
+        chart.leftAxis.drawGridLinesEnabled = false
+        chart.leftAxis.axisMinimum = 0
+        chart.leftAxis.axisMaximum = max(1, (values.max() ?? 0) + 1) // ✅ important
+        chart.leftAxis.labelTextColor = .secondaryLabel
+        chart.rightAxis.enabled = false
 
-            // Bar
-            let bar = UIView()
-            bar.translatesAutoresizingMaskIntoConstraints = false
-            bar.backgroundColor = .systemGray4
-            bar.layer.cornerRadius = 8
-            bar.clipsToBounds = true
-            chartContainer.addSubview(bar)
+        chart.legend.enabled = false
+        chart.chartDescription.enabled = false
 
-            let heightConstraint = bar.heightAnchor.constraint(equalToConstant: 40)
-            barHeightConstraints.append(heightConstraint)
+        chart.isUserInteractionEnabled = true
+        chart.highlightPerTapEnabled = true
+        chart.highlightPerDragEnabled = true
+        chart.dragEnabled = true
+        chart.setScaleEnabled(true)
+        chart.pinchZoomEnabled = true
+        chart.doubleTapToZoomEnabled = true
 
-            NSLayoutConstraint.activate([
-                bar.bottomAnchor.constraint(equalTo: chartContainer.bottomAnchor,
-                                            constant: -bottomPadding),
-                bar.widthAnchor.constraint(equalToConstant: barWidth),
-                heightConstraint
-            ])
+        chart.extraTopOffset = 8
+        chart.extraBottomOffset = 8
+        chart.extraLeftOffset = 8
+        chart.extraRightOffset = 8
 
-            if let prev = previousBar {
-                bar.leadingAnchor.constraint(equalTo: prev.trailingAnchor,
-                                             constant: spacing).isActive = true
-            } else {
-                bar.leadingAnchor.constraint(equalTo: chartContainer.leadingAnchor,
-                                             constant: 24).isActive = true
-            }
-
-            // Label
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = weeks[i]
-            label.font = .systemFont(ofSize: 13, weight: .medium)
-            label.textColor = .secondaryLabel
-            label.textAlignment = .center
-            chartContainer.addSubview(label)
-
-            NSLayoutConstraint.activate([
-                label.topAnchor.constraint(equalTo: bar.bottomAnchor, constant: 8),
-                label.centerXAnchor.constraint(equalTo: bar.centerXAnchor)
-            ])
-
-            previousBar = bar
-        }
-    }
-
-    func updateBarValues(_ values: [CGFloat]) {
-        guard barHeightConstraints.count == 4 else { return }
-
-        let maxValue = max(values.max() ?? 1, 1)
-        let maxHeight: CGFloat = 140
-
-        for i in 0..<4 {
-            let v = i < values.count ? values[i] : 0
-            barHeightConstraints[i].constant = max(6, (v / maxValue) * maxHeight)
-        }
-
-        UIView.animate(withDuration: 0.25) {
-            self.tableView.layoutIfNeeded()
-        }
+        chart.animate(yAxisDuration: 0.4)
     }
 }
-
 
