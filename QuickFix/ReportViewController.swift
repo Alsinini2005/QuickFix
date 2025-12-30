@@ -9,9 +9,8 @@ final class ReportViewController: UIViewController {
     private var listener: ListenerRegistration?
 
     struct ReportSummary {
-        let docId: String          // Firestore document id (still useful)
-        let reportId: Int          // ✅ numeric id
-        let type: String           // "monthly" / "yearly"
+        let docId: String
+        let type: String               // "monthly" / "yearly"
         let createdAt: Date
         let periodStart: Date
         let periodEnd: Date
@@ -22,43 +21,39 @@ final class ReportViewController: UIViewController {
             let d = doc.data()
 
             guard
-                let reportId = d["reportId"] as? Int,
                 let type = d["type"] as? String,
                 let startTS = d["periodStart"] as? Timestamp,
                 let endTS = d["periodEnd"] as? Timestamp
             else { return nil }
 
             self.docId = doc.documentID
-            self.reportId = reportId
             self.type = type
             self.periodStart = startTS.dateValue()
             self.periodEnd = endTS.dateValue()
+
+            // createdAt may be missing in older docs, so fallback to now (won't crash)
             self.createdAt = (d["createdAt"] as? Timestamp)?.dateValue() ?? Date()
 
-            let totals = d["totals"] as? [String: Any]
-            self.assigned = totals?["assigned"] as? Int ?? 0
-            self.completed = (totals?["completed"] as? Int) ?? (totals?["resolved"] as? Int ?? 0)
+            let totals = d["totals"] as? [String: Any] ?? [:]
+            self.assigned = totals["assigned"] as? Int ?? 0
+            self.completed = (totals["completed"] as? Int) ?? (totals["resolved"] as? Int ?? 0)
         }
     }
 
     private var monthlyReports: [ReportSummary] = []
     private var yearlyReports: [ReportSummary] = []
 
-    private lazy var df: DateFormatter = {
+    // createdAt title formatter (you asked for this)
+    private lazy var createdAtFormatter: DateFormatter = {
         let f = DateFormatter()
-        f.dateFormat = "d MMM yyyy"
+        f.dateFormat = "d MMM yyyy, h:mm a"
         return f
     }()
 
-    private lazy var monthFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "MMMM yyyy"
-        return f
-    }()
-
-    private lazy var yearFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy"
+    private lazy var rangeFormatter: DateIntervalFormatter = {
+        let f = DateIntervalFormatter()
+        f.dateStyle = .medium
+        f.timeStyle = .none
         return f
     }()
 
@@ -81,18 +76,15 @@ final class ReportViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
 
-        if tableView.dequeueReusableCell(withIdentifier: "ReportCell") == nil {
-            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ReportCell")
-        }
-
+        // IMPORTANT:
+        // Don't register UITableViewCell.self with "ReportCell" because it forces .default style
+        // which makes detailTextLabel nil.
         navigationItem.title = "Tech report record"
     }
 
     private func startListening() {
         listener?.remove()
 
-        // If you want to sort by numeric reportId:
-        // make sure you have it in docs and create index if needed.
         listener = db.collection("adminReports")
             .order(by: "createdAt", descending: true)
             .addSnapshotListener { [weak self] snapshot, error in
@@ -113,47 +105,29 @@ final class ReportViewController: UIViewController {
             }
     }
 
+    // ✅ TITLE = createdAt
     private func reportTitle(_ r: ReportSummary) -> String {
-        if r.type == "monthly" {
-            return "#\(r.reportId) • \(monthFormatter.string(from: r.periodStart)) monthly report"
-        } else {
-            return "#\(r.reportId) • \(yearFormatter.string(from: r.periodStart)) yearly report"
-        }
+        return createdAtFormatter.string(from: r.createdAt)
     }
 
+    // subtitle shows type + period + stats
     private func reportSubtitle(_ r: ReportSummary) -> String {
-        let created = df.string(from: r.createdAt)
-        return "Created: \(created) • Done: \(r.completed)"
+        let period = rangeFormatter.string(from: r.periodStart, to: r.periodEnd)
+        let typeText = (r.type == "yearly") ? "Yearly" : "Monthly"
+        return "\(typeText) • \(period) • Assigned: \(r.assigned) • Done: \(r.completed)"
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard let payload = sender as? (reportId: Int, type: String) else { return }
+        // Since your docs don’t have reportId reliably, pass docId instead.
+        guard let payload = sender as? (docId: String, type: String) else { return }
 
-        // Don’t cast to a specific VC type (prevents “Cannot find type” errors)
-        // Just set reportId on destination if it exists.
-        if payload.type == "monthly" {
-            // ShowMonthlyReport
-            if let dest = segue.destination as? (UIViewController & ReportIdReceivable) {
-                dest.reportId = payload.reportId
-            } else {
-                segue.destination.setValue(payload.reportId, forKey: "reportId")
-            }
-        } else {
-            // ShowYearlyReport
-            if let dest = segue.destination as? (UIViewController & ReportIdReceivable) {
-                dest.reportId = payload.reportId
-            } else {
-                segue.destination.setValue(payload.reportId, forKey: "reportId")
-            }
-        }
+        // if your destination supports docId, this is best
+        segue.destination.setValue(payload.docId, forKey: "docId")
+        segue.destination.setValue(payload.type, forKey: "type")
     }
-
-    }
-protocol ReportIdReceivable: AnyObject {
-    var reportId: Int! { get set }
 }
 
-
+// MARK: - Table Data Source
 extension ReportViewController: UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int { 2 }
@@ -165,7 +139,10 @@ extension ReportViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ReportCell", for: indexPath)
+        // ✅ Use .subtitle so detailTextLabel exists
+        let reuse = "ReportCellSubtitle"
+        let cell = tableView.dequeueReusableCell(withIdentifier: reuse)
+            ?? UITableViewCell(style: .subtitle, reuseIdentifier: reuse)
 
         cell.selectionStyle = .default
         cell.backgroundColor = .clear
@@ -178,20 +155,22 @@ extension ReportViewController: UITableViewDataSource {
         cell.textLabel?.text = reportTitle(item)
         cell.textLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         cell.textLabel?.textColor = .label
-        cell.textLabel?.numberOfLines = 2
+        cell.textLabel?.numberOfLines = 1
 
         cell.detailTextLabel?.text = reportSubtitle(item)
         cell.detailTextLabel?.font = .systemFont(ofSize: 12, weight: .regular)
         cell.detailTextLabel?.textColor = .secondaryLabel
+        cell.detailTextLabel?.numberOfLines = 2
 
         cell.accessoryType = .disclosureIndicator
         return cell
     }
 }
 
+// MARK: - Table Delegate
 extension ReportViewController: UITableViewDelegate {
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { 72 }
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { 86 }
 
     func tableView(_ tableView: UITableView,
                    willDisplay cell: UITableViewCell,
@@ -201,9 +180,6 @@ extension ReportViewController: UITableViewDelegate {
         cell.contentView.layer.masksToBounds = true
         cell.contentView.layer.borderWidth = 1
         cell.contentView.layer.borderColor = UIColor.systemGray5.cgColor
-
-        let frame = cell.contentView.frame
-        cell.contentView.frame = frame.inset(by: UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16))
     }
 
     func tableView(_ tableView: UITableView,
@@ -236,9 +212,9 @@ extension ReportViewController: UITableViewDelegate {
         : yearlyReports[indexPath.row]
 
         if item.type == "monthly" {
-            performSegue(withIdentifier: "ShowMonthlyReport", sender: (reportId: item.reportId, type: "monthly"))
+            performSegue(withIdentifier: "ShowMonthlyReport", sender: (docId: item.docId, type: "monthly"))
         } else {
-            performSegue(withIdentifier: "ShowYearlyReport", sender: (reportId: item.reportId, type: "yearly"))
+            performSegue(withIdentifier: "ShowYearlyReport", sender: (docId: item.docId, type: "yearly"))
         }
     }
 }

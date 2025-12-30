@@ -4,17 +4,16 @@ import FirebaseFirestore
 final class DashboardViewController: UIViewController {
 
     // MARK: - Outlets (connect in storyboard)
-    @IBOutlet weak var pendingCardView: UIView!
-    @IBOutlet weak var onProcessCardView: UIView!
-    @IBOutlet weak var monthlyCardView: UIView!
+    @IBOutlet private weak var pendingCardView: UIView!
+    @IBOutlet private weak var onProcessCardView: UIView!
+    @IBOutlet private weak var monthlyCardView: UIView!
 
-    // ✅ Add these labels in storyboard + connect
-    @IBOutlet weak var pendingCountLabel: UILabel!
-    @IBOutlet weak var onProcessCountLabel: UILabel!
-    @IBOutlet weak var completedCountLabel: UILabel!
+    @IBOutlet private weak var pendingCountLabel: UILabel!
+    @IBOutlet private weak var onProcessCountLabel: UILabel!
+    @IBOutlet private weak var completedCountLabel: UILabel!
 
-    // ✅ Add a UIView placeholder in storyboard for donut + connect
-    @IBOutlet weak var donutContainerView: UIView!
+    // Donut placeholder view in storyboard
+    @IBOutlet private weak var donutContainerView: UIView!
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
@@ -23,34 +22,24 @@ final class DashboardViewController: UIViewController {
     // MARK: - Donut
     private let donutView = DonutChartView()
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        styleCards()
+        applyCardStyles()
         setupDonut()
         startListeningCounts()
     }
 
+    private func applyCardStyles() {
+        pendingCardView.applyCardStyle()
+        onProcessCardView.applyCardStyle()
+        monthlyCardView.applyCardStyle()
+    }
+
     deinit { listener?.remove() }
 
-    // MARK: - UI
-    private func styleCards() {
-        applyCardStyle(pendingCardView)
-        applyCardStyle(onProcessCardView)
-        applyCardStyle(monthlyCardView)
-    }
-
-    private func applyCardStyle(_ v: UIView) {
-        v.backgroundColor = .white
-        v.layer.cornerRadius = 6
-        v.layer.borderWidth = 1
-        v.layer.borderColor = UIColor.systemGray4.cgColor
-        v.layer.masksToBounds = true
-        v.layer.shadowOpacity = 0
-    }
-
+    // MARK: - Donut
     private func setupDonut() {
-        donutContainerView.backgroundColor = .clear
-
         donutView.translatesAutoresizingMaskIntoConstraints = false
         donutContainerView.addSubview(donutView)
 
@@ -61,18 +50,24 @@ final class DashboardViewController: UIViewController {
             donutView.bottomAnchor.constraint(equalTo: donutContainerView.bottomAnchor)
         ])
 
-        // initial
-        donutView.setData(pending: 0, inProgress: 0, completed: 0)
+        // Initial segments (no setData in your DonutChartView)
+        donutView.segments = [
+            .init(value: 0, color: .systemRed),
+            .init(value: 0, color: .systemOrange),
+            .init(value: 0, color: .systemGreen)
+        ]
     }
+    
+
 
     // MARK: - Firestore
     private func startListeningCounts() {
         listener?.remove()
 
-        // Listen to all requests and compute counts locally (simple + reliable)
         listener = db.collection("requests")
             .addSnapshotListener { [weak self] snap, err in
                 guard let self else { return }
+
                 if let err {
                     print("Dashboard listen error:", err)
                     return
@@ -102,7 +97,11 @@ final class DashboardViewController: UIViewController {
                     self.onProcessCountLabel.text = "\(inProgress)"
                     self.completedCountLabel.text = "\(completed)"
 
-                    self.donutView.setData(pending: pending, inProgress: inProgress, completed: completed)
+                    self.donutView.segments = [
+                        .init(value: CGFloat(pending), color: .systemRed),
+                        .init(value: CGFloat(inProgress), color: .systemOrange),
+                        .init(value: CGFloat(completed), color: .systemGreen)
+                    ]
                 }
             }
     }
