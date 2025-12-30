@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Assign Task-->
+        <scene sceneID="YsS-HB-0HU">
+            <objects>
+                <viewController id="qPi-Gd-f8x" customClass="TechnicianTasksViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="f3b-P7-TRh">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="D74-4h-kzi">
+                                <rect key="frame" x="0.0" y="162" width="393" height="474"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0gI-PW-SHh">
+                                <rect key="frame" x="20" y="671" width="77.666666666666671" height="44"/>
+                                <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="Ife-jN-mGD"/>
+                                </constraints>
+                                <color key="tintColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="gray" title="Accept"/>
+                                <connections>
+                                    <action selector="acceptPressed:" destination="qPi-Gd-f8x" eventType="touchUpInside" id="a9P-sQ-sZV"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5r5-ea-Gjd">
+                                <rect key="frame" x="301" y="671" width="72" height="44"/>
+                                <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="guH-Uv-5S0"/>
+                                </constraints>
+                                <color key="tintColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="gray" title="Reject"/>
+                                <connections>
+                                    <action selector="rejectPressed:" destination="qPi-Gd-f8x" eventType="touchUpInside" id="jZG-XV-aQ1"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="WNz-IQ-as9"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="D74-4h-kzi" firstAttribute="trailing" secondItem="WNz-IQ-as9" secondAttribute="trailing" id="IY6-Sl-DMT"/>
+                            <constraint firstItem="5r5-ea-Gjd" firstAttribute="leading" secondItem="0gI-PW-SHh" secondAttribute="trailing" constant="203.33000000000001" id="Jk9-6B-D8q"/>
+                            <constraint firstItem="WNz-IQ-as9" firstAttribute="bottom" secondItem="0gI-PW-SHh" secondAttribute="bottom" constant="20" id="KIl-Jl-kz4"/>
+                            <constraint firstItem="0gI-PW-SHh" firstAttribute="leading" secondItem="WNz-IQ-as9" secondAttribute="leading" constant="20" id="Pna-IJ-yDt"/>
+                            <constraint firstItem="5r5-ea-Gjd" firstAttribute="leading" secondItem="0gI-PW-SHh" secondAttribute="trailing" constant="203.33000000000001" id="Su7-1X-qEO"/>
+                            <constraint firstItem="WNz-IQ-as9" firstAttribute="trailing" secondItem="5r5-ea-Gjd" secondAttribute="trailing" constant="20" id="XNs-Za-s2u"/>
+                            <constraint firstItem="D74-4h-kzi" firstAttribute="top" secondItem="WNz-IQ-as9" secondAttribute="top" id="c5i-Ru-ZOm"/>
+                            <constraint firstItem="0gI-PW-SHh" firstAttribute="top" secondItem="D74-4h-kzi" secondAttribute="bottom" constant="35" id="l77-ql-xkn"/>
+                            <constraint firstItem="D74-4h-kzi" firstAttribute="leading" secondItem="WNz-IQ-as9" secondAttribute="leading" id="otc-hN-IUc"/>
+                            <constraint firstItem="5r5-ea-Gjd" firstAttribute="top" secondItem="D74-4h-kzi" secondAttribute="bottom" constant="35" id="pnl-BY-aLV"/>
+                            <constraint firstItem="WNz-IQ-as9" firstAttribute="bottom" secondItem="5r5-ea-Gjd" secondAttribute="bottom" constant="20" id="quZ-8q-bc6"/>
+                        </constraints>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Item" id="0av-fb-lGY"/>
+                    <navigationItem key="navigationItem" title="Assign Task" id="AvC-Ct-7wc"/>
+                    <connections>
+                        <outlet property="acceptButton" destination="0gI-PW-SHh" id="Jgg-F9-Wap"/>
+                        <outlet property="rejectButton" destination="5r5-ea-Gjd" id="3Em-PU-HqS"/>
+                        <outlet property="tableView" destination="D74-4h-kzi" id="Uhl-5H-jJz"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="CG3-El-75f" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="641.98473282442751" y="-297.18309859154931"/>
+        </scene>
+        <!--Assign Task-->
+        <scene sceneID="d4t-2N-pAU">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="1XV-ZH-YI8" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Assign Task" id="wJU-EZ-wjm"/>
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="KBL-bU-cFj">
+                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" red="0.15686274510000001" green="0.27058823529999998" blue="0.35294117650000001" alpha="1" colorSpace="calibratedRGB"/>
+                        <textAttributes key="titleTextAttributes">
+                            <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </textAttributes>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="qPi-Gd-f8x" kind="relationship" relationship="rootViewController" id="odT-g2-b6o"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="K0R-af-c8Z" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-691" y="-297"/>
+        </scene>
+        <!--Tab Bar Controller-->
+        <scene sceneID="4Q4-UQ-Amt">
+            <objects>
+                <tabBarController automaticallyAdjustsScrollViewInsets="NO" id="jMr-8r-7lR" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" id="67q-Zy-sd5"/>
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionIndicatorImage="list.bullet.clipboard" catalog="system" id="KJc-IU-rJL">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="1XV-ZH-YI8" kind="relationship" relationship="viewControllers" id="4Vq-0b-CL6"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Dsa-P8-6pq" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1734" y="-297"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="list.bullet.clipboard" catalog="system" width="98" height="128"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

@@ -20,6 +20,7 @@
 
 /* Begin PBXFileReference section */
 		5B3FD7602F014F0600F32162 /* QuickFix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickFix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B5578A62F040EC50014EC5B /* QuickFix.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = QuickFix.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -63,6 +64,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B5578A72F040EC50014EC5B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		CC2330A32EDD7EC90031D5DC = {
 			isa = PBXGroup;
 			children = (
@@ -137,6 +145,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CC2330A32EDD7EC90031D5DC;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 5B5578A72F040EC50014EC5B /* Products */;
+					ProjectRef = 5B5578A62F040EC50014EC5B /* QuickFix.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				CC2330AB2EDD7EC90031D5DC /* QuickFix */,
