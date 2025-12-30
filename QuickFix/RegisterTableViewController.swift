@@ -27,6 +27,8 @@ final class RegisterTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        passwordTextField.textContentType = .oneTimeCode
+        confirmPasswordTextField.textContentType = .oneTimeCode
         clearAllErrors()
     }
 

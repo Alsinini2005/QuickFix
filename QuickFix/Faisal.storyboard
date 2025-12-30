@@ -994,8 +994,11 @@ support@quickfix.com</string>
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="200"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="logo" translatesAutoresizingMaskIntoConstraints="NO" id="VzI-dM-SkK">
+                                                    <rect key="frame" x="61" y="0.0" width="231" height="121"/>
+                                                </imageView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Create Your Account" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2I7-yZ-NSK">
-                                                    <rect key="frame" x="28" y="129" width="297" height="40"/>
+                                                    <rect key="frame" x="24" y="129" width="305" height="40"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="40" id="I1d-PE-fV6"/>
                                                     </constraints>
@@ -1003,15 +1006,12 @@ support@quickfix.com</string>
                                                     <color key="textColor" red="0.18823529780000001" green="0.26666668059999998" blue="0.34509804840000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="logo" translatesAutoresizingMaskIntoConstraints="NO" id="VzI-dM-SkK">
-                                                    <rect key="frame" x="61" y="0.0" width="231" height="121"/>
-                                                </imageView>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="bottomMargin" secondItem="2I7-yZ-NSK" secondAttribute="bottom" constant="19" id="4r1-GD-ZMd"/>
                                                 <constraint firstItem="VzI-dM-SkK" firstAttribute="top" secondItem="sbm-l8-ihj" secondAttribute="top" id="5sI-bB-ymZ"/>
                                                 <constraint firstItem="VzI-dM-SkK" firstAttribute="leading" secondItem="sbm-l8-ihj" secondAttribute="leadingMargin" constant="41" id="IRI-ru-ywk"/>
-                                                <constraint firstItem="2I7-yZ-NSK" firstAttribute="leading" secondItem="sbm-l8-ihj" secondAttribute="leadingMargin" constant="8" id="VGR-ut-QeK"/>
+                                                <constraint firstItem="2I7-yZ-NSK" firstAttribute="leading" secondItem="sbm-l8-ihj" secondAttribute="leadingMargin" constant="4" id="VGR-ut-QeK"/>
                                                 <constraint firstItem="VzI-dM-SkK" firstAttribute="centerX" secondItem="2I7-yZ-NSK" secondAttribute="centerX" id="dde-zQ-lz9"/>
                                                 <constraint firstItem="2I7-yZ-NSK" firstAttribute="centerX" secondItem="sbm-l8-ihj" secondAttribute="centerX" id="kQc-WO-KNp"/>
                                                 <constraint firstItem="2I7-yZ-NSK" firstAttribute="top" secondItem="VzI-dM-SkK" secondAttribute="bottom" constant="8" symbolic="YES" id="nfn-pU-1Kp"/>
@@ -1233,7 +1233,7 @@ support@quickfix.com</string>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2ec-tt-nVT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-5443" y="-323"/>
+            <point key="canvasLocation" x="-5443.5114503816794" y="-323.23943661971833"/>
         </scene>
         <!--Dashboard Navigator-->
         <scene sceneID="vFZ-WQ-1c3">
