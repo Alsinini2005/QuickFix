@@ -44,6 +44,7 @@ final class AddRuleViewController: UITableViewController, UIPickerViewDataSource
     // MARK: - Edit Mode
     private var editingRuleId: UUID? = nil
     private var pendingEditRule: AutoRule? = nil
+    var currentEditingRuleId: UUID? { editingRuleId }
 
     // AutoRulesViewController بينادي هذي قبل ما يفتح الصفحة (وقت الـ Edit)
     func configureForEdit(rule: AutoRule) {
@@ -55,7 +56,7 @@ final class AddRuleViewController: UITableViewController, UIPickerViewDataSource
     private var locations = ["Server Room", "Main Admin Office", "Workshop"]
     private var categories = ["Fire/Safety Hazard", "HVAC Emergency", "Electrical", "IT"]
     private var timeLimits = [1, 4, 8, 24]
-    private let priorities = ["LOW", "MEDIUM", "HIGH", "URGENT"]
+    private let priorities = ["LOW", "MEDIUM", "HIGH", "URGENT ❗️"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
