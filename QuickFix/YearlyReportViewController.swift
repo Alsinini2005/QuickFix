@@ -1,8 +1,12 @@
 import UIKit
 import FirebaseFirestore
 
-final class YearlyReportViewController: UIViewController {
-    @objc var reportId: Int = 0
+final class YearlyReportViewController: UIViewController, AdminReportDocReceivable {
+
+    // ✅ Receive from ReportViewController
+    var docId: String?
+    var type: String?
+
     @IBOutlet weak var tableView: UITableView!
 
     private let db = Firestore.firestore()
@@ -70,6 +74,7 @@ final class YearlyReportViewController: UIViewController {
     private func startListening() {
         listener?.remove()
 
+        // ✅ This page is a "list page" for yearly reports
         listener = db.collection("adminReports")
             .whereField("type", isEqualTo: "yearly")
             .order(by: "createdAt", descending: true)
@@ -92,11 +97,25 @@ final class YearlyReportViewController: UIViewController {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard segue.identifier == "ShowYearlyReportFull",
-              let reportNumber = sender as? Int else { return }
+              let payload = sender as? (docId: String) else { return }
 
-        segue.destination.setValue(reportNumber, forKey: "reportId")
+        // Handle UINavigationController embedding
+        let dest: UIViewController
+        if let nav = segue.destination as? UINavigationController {
+            dest = nav.viewControllers.first ?? nav
+        } else {
+            dest = segue.destination
+        }
+
+        // ✅ Best: typed passing if destination conforms
+        if let receiver = dest as? AdminReportDocReceivable {
+            receiver.docId = payload.docId
+            receiver.type = "yearly"
+        } else {
+            // Fallback (only safe if destination has @objc var docId)
+            dest.setValue(payload.docId, forKey: "docId")
+        }
     }
-
 }
 
 // MARK: - UITableViewDataSource
@@ -122,7 +141,14 @@ extension YearlyReportViewController: UITableViewDataSource {
         // Title
         let titleLabel = UILabel()
         titleLabel.tag = 1001
-        titleLabel.text = "Yearly Report #\(r.reportId)"
+
+        // ✅ Use reportId if exists else fallback to docId
+        if let rid = r.reportId {
+            titleLabel.text = "Yearly Report #\(rid)"
+        } else {
+            titleLabel.text = "Yearly Report • \(r.docId.prefix(6))"
+        }
+
         titleLabel.textColor = .label
         titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         titleLabel.numberOfLines = 1
@@ -189,16 +215,15 @@ extension YearlyReportViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
 
         let r = reports[indexPath.row]
-
-        // ✅ open full yearly report page
-        performSegue(withIdentifier: "ShowYearlyReportFull", sender: r.reportId)
+        // ✅ Pass docId (matches your Firestore docs)
+        performSegue(withIdentifier: "ShowYearlyReportFull", sender: (docId: r.docId))
     }
 }
 
 // MARK: - Model
 private struct AdminReportRow {
     let docId: String
-    let reportId: Int
+    let reportId: Int?          // ✅ optional now
     let periodStart: Date
     let periodEnd: Date
     let assigned: Int
@@ -211,16 +236,15 @@ private struct AdminReportRow {
         let data = doc.data()
 
         guard
-            let reportId = data["reportId"] as? Int,
             let startTS = data["periodStart"] as? Timestamp,
             let endTS = data["periodEnd"] as? Timestamp
         else { return nil }
 
-        let totals = data["totals"] as? [String: Any]
-        let assigned = totals?["assigned"] as? Int ?? 0
+        let totals = data["totals"] as? [String: Any] ?? [:]
+        let assigned = totals["assigned"] as? Int ?? 0
+        let completed = (totals["completed"] as? Int) ?? (totals["resolved"] as? Int ?? 0)
 
-        // ✅ supports both completed (new) and resolved (old)
-        let completed = (totals?["completed"] as? Int) ?? (totals?["resolved"] as? Int ?? 0)
+        let reportId = data["reportId"] as? Int
 
         return AdminReportRow(
             docId: doc.documentID,

@@ -1,6 +1,12 @@
 import UIKit
 import FirebaseFirestore
 
+// ✅ Add this protocol ONCE (best to keep it in its own file later, but putting it here works)
+protocol AdminReportDocReceivable: AnyObject {
+    var docId: String? { get set }
+    var type: String? { get set }   // "monthly" / "yearly"
+}
+
 final class ReportViewController: UIViewController {
 
     @IBOutlet private weak var tableView: UITableView!
@@ -8,6 +14,7 @@ final class ReportViewController: UIViewController {
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
+    // MARK: - Model
     struct ReportSummary {
         let docId: String
         let type: String               // "monthly" / "yearly"
@@ -30,8 +37,6 @@ final class ReportViewController: UIViewController {
             self.type = type
             self.periodStart = startTS.dateValue()
             self.periodEnd = endTS.dateValue()
-
-            // createdAt may be missing in older docs, so fallback to now (won't crash)
             self.createdAt = (d["createdAt"] as? Timestamp)?.dateValue() ?? Date()
 
             let totals = d["totals"] as? [String: Any] ?? [:]
@@ -43,7 +48,7 @@ final class ReportViewController: UIViewController {
     private var monthlyReports: [ReportSummary] = []
     private var yearlyReports: [ReportSummary] = []
 
-    // createdAt title formatter (you asked for this)
+    // MARK: - Formatters (title uses createdAt)
     private lazy var createdAtFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "d MMM yyyy, h:mm a"
@@ -57,6 +62,7 @@ final class ReportViewController: UIViewController {
         return f
     }()
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -65,6 +71,7 @@ final class ReportViewController: UIViewController {
 
     deinit { listener?.remove() }
 
+    // MARK: - UI
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
 
@@ -76,12 +83,10 @@ final class ReportViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
 
-        // IMPORTANT:
-        // Don't register UITableViewCell.self with "ReportCell" because it forces .default style
-        // which makes detailTextLabel nil.
         navigationItem.title = "Tech report record"
     }
 
+    // MARK: - Firestore
     private func startListening() {
         listener?.remove()
 
@@ -105,29 +110,45 @@ final class ReportViewController: UIViewController {
             }
     }
 
-    // ✅ TITLE = createdAt
+    // MARK: - Text
     private func reportTitle(_ r: ReportSummary) -> String {
-        return createdAtFormatter.string(from: r.createdAt)
+        createdAtFormatter.string(from: r.createdAt)   // ✅ Title = createdAt
     }
 
-    // subtitle shows type + period + stats
     private func reportSubtitle(_ r: ReportSummary) -> String {
         let period = rangeFormatter.string(from: r.periodStart, to: r.periodEnd)
         let typeText = (r.type == "yearly") ? "Yearly" : "Monthly"
         return "\(typeText) • \(period) • Assigned: \(r.assigned) • Done: \(r.completed)"
     }
 
+    // MARK: - Segue (VC-to-VC only)
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Since your docs don’t have reportId reliably, pass docId instead.
         guard let payload = sender as? (docId: String, type: String) else { return }
 
-        // if your destination supports docId, this is best
-        segue.destination.setValue(payload.docId, forKey: "docId")
-        segue.destination.setValue(payload.type, forKey: "type")
+        // Handle UINavigationController embedding safely
+        let destination: UIViewController
+        if let nav = segue.destination as? UINavigationController {
+            destination = nav.viewControllers.first ?? nav
+        } else {
+            destination = segue.destination
+        }
+
+        // ✅ Best: typed passing (NO KVC crash)
+        if let receiver = destination as? AdminReportDocReceivable {
+            receiver.docId = payload.docId
+            receiver.type = payload.type
+        } else {
+            // Helpful debug to know what class you are actually navigating to
+            print("⚠️ Destination does not conform to AdminReportDocReceivable:", type(of: destination))
+
+            // Optional fallback ONLY if you later add @objc var docId/type on destination
+            // destination.setValue(payload.docId, forKey: "docId")
+            // destination.setValue(payload.type, forKey: "type")
+        }
     }
 }
 
-// MARK: - Table Data Source
+// MARK: - UITableViewDataSource
 extension ReportViewController: UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int { 2 }
@@ -167,7 +188,7 @@ extension ReportViewController: UITableViewDataSource {
     }
 }
 
-// MARK: - Table Delegate
+// MARK: - UITableViewDelegate
 extension ReportViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { 86 }
@@ -212,9 +233,11 @@ extension ReportViewController: UITableViewDelegate {
         : yearlyReports[indexPath.row]
 
         if item.type == "monthly" {
-            performSegue(withIdentifier: "ShowMonthlyReport", sender: (docId: item.docId, type: "monthly"))
+            performSegue(withIdentifier: "ShowMonthlyReport",
+                         sender: (docId: item.docId, type: "monthly"))
         } else {
-            performSegue(withIdentifier: "ShowYearlyReport", sender: (docId: item.docId, type: "yearly"))
+            performSegue(withIdentifier: "ShowYearlyReport",
+                         sender: (docId: item.docId, type: "yearly"))
         }
     }
 }

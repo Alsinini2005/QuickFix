@@ -1,9 +1,19 @@
 import UIKit
 import FirebaseFirestore
 
-final class MonthlyReportListViewController: UIViewController {
-    @objc var reportId: Int = 0
-    @IBOutlet var tableView: UITableView!
+// ✅ Add this once in your project (best: in separate file). If already added elsewhere, remove from here.
+// protocol AdminReportDocReceivable: AnyObject {
+//     var docId: String? { get set }
+//     var type: String? { get set }
+// }
+
+final class MonthlyReportListViewController: UIViewController, AdminReportDocReceivable {
+
+    // ✅ Will be set from ReportViewController
+    var docId: String?
+    var type: String?
+
+    @IBOutlet private weak var tableView: UITableView!
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
@@ -26,7 +36,6 @@ final class MonthlyReportListViewController: UIViewController {
     deinit { listener?.remove() }
 
     // MARK: - UI
-
     private func setupNavBar() {
         title = "Technician Performance"
 
@@ -68,10 +77,11 @@ final class MonthlyReportListViewController: UIViewController {
     }
 
     // MARK: - Firebase listen
-
     private func startListening() {
         listener?.remove()
 
+        // ✅ If this VC is used as a "list page", load all monthly reports
+        // (this is how your UI is built)
         listener = db.collection("adminReports")
             .whereField("type", isEqualTo: "monthly")
             .order(by: "createdAt", descending: true)
@@ -93,11 +103,25 @@ final class MonthlyReportListViewController: UIViewController {
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard segue.identifier == "ShowMonthlyReportFull",
-              let reportNumber = sender as? Int else { return }
+              let payload = sender as? (docId: String) else { return }
 
-        segue.destination.setValue(reportNumber, forKey: "reportId")
+        // ✅ Handle if destination is embedded in nav controller
+        let dest: UIViewController
+        if let nav = segue.destination as? UINavigationController {
+            dest = nav.viewControllers.first ?? nav
+        } else {
+            dest = segue.destination
+        }
+
+        // ✅ Pass docId safely (no KVC crash if you make destination accept it)
+        if var receiver = dest as? AdminReportDocReceivable {
+            receiver.docId = payload.docId
+            receiver.type = "monthly"
+        } else {
+            // Fallback KVC (only safe if destination has @objc var docId)
+            dest.setValue(payload.docId, forKey: "docId")
+        }
     }
-
 }
 
 // MARK: - UITableViewDataSource
@@ -120,10 +144,17 @@ extension MonthlyReportListViewController: UITableViewDataSource {
         cell.contentView.viewWithTag(1002)?.removeFromSuperview()
         cell.contentView.viewWithTag(1003)?.removeFromSuperview()
 
-        // Top label (small)
+        // Top label
         let nameLabel = UILabel()
         nameLabel.tag = 1001
-        nameLabel.text = "Monthly Report #\(r.reportId)"
+
+        // ✅ Use reportId if exists, else fallback to docId short
+        if let rid = r.reportId {
+            nameLabel.text = "Monthly Report #\(rid)"
+        } else {
+            nameLabel.text = "Monthly Report • \(r.docId.prefix(6))"
+        }
+
         nameLabel.textColor = .label
         nameLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         nameLabel.numberOfLines = 1
@@ -190,14 +221,15 @@ extension MonthlyReportListViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
 
         let r = reports[indexPath.row]
-        performSegue(withIdentifier: "ShowMonthlyReportFull", sender: r.reportId)
+        // ✅ Pass docId (works with your Firestore docs)
+        performSegue(withIdentifier: "ShowMonthlyReportFull", sender: (docId: r.docId))
     }
 }
 
 // MARK: - Model
 private struct AdminReportRow {
     let docId: String
-    let reportId: Int
+    let reportId: Int?         // ✅ optional now
     let periodStart: Date
     let periodEnd: Date
     let assigned: Int
@@ -210,16 +242,15 @@ private struct AdminReportRow {
         let data = doc.data()
 
         guard
-            let reportId = data["reportId"] as? Int,
             let startTS = data["periodStart"] as? Timestamp,
             let endTS = data["periodEnd"] as? Timestamp
         else { return nil }
 
-        let totals = data["totals"] as? [String: Any]
-        let assigned = totals?["assigned"] as? Int ?? 0
+        let totals = data["totals"] as? [String: Any] ?? [:]
+        let assigned = totals["assigned"] as? Int ?? 0
+        let completed = (totals["completed"] as? Int) ?? (totals["resolved"] as? Int ?? 0)
 
-        // ✅ supports both new "completed" and old "resolved"
-        let completed = (totals?["completed"] as? Int) ?? (totals?["resolved"] as? Int ?? 0)
+        let reportId = data["reportId"] as? Int
 
         return AdminReportRow(
             docId: doc.documentID,
