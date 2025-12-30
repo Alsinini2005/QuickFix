@@ -1,187 +1,144 @@
 import UIKit
 import FirebaseFirestore
 
-// ✅ Add this protocol ONCE (best to keep it in its own file later, but putting it here works)
-protocol AdminReportDocReceivable: AnyObject {
-    var docId: String? { get set }
-    var type: String? { get set }   // "monthly" / "yearly"
-}
-
 final class ReportViewController: UIViewController {
 
+    // MARK: - Outlets
     @IBOutlet private weak var tableView: UITableView!
 
+    // MARK: - Firestore
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
-    // MARK: - Model
-    struct ReportSummary {
-        let docId: String
-        let type: String               // "monthly" / "yearly"
-        let createdAt: Date
-        let periodStart: Date
-        let periodEnd: Date
-        let assigned: Int
-        let completed: Int
+    // MARK: - Data
+    private var reports: [ReportItem] = []
 
-        init?(doc: QueryDocumentSnapshot) {
-            let d = doc.data()
-
-            guard
-                let type = d["type"] as? String,
-                let startTS = d["periodStart"] as? Timestamp,
-                let endTS = d["periodEnd"] as? Timestamp
-            else { return nil }
-
-            self.docId = doc.documentID
-            self.type = type
-            self.periodStart = startTS.dateValue()
-            self.periodEnd = endTS.dateValue()
-            self.createdAt = (d["createdAt"] as? Timestamp)?.dateValue() ?? Date()
-
-            let totals = d["totals"] as? [String: Any] ?? [:]
-            self.assigned = totals["assigned"] as? Int ?? 0
-            self.completed = (totals["completed"] as? Int) ?? (totals["resolved"] as? Int ?? 0)
-        }
-    }
-
-    private var monthlyReports: [ReportSummary] = []
-    private var yearlyReports: [ReportSummary] = []
-
-    // MARK: - Formatters (title uses createdAt)
-    private lazy var createdAtFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "d MMM yyyy, h:mm a"
-        return f
-    }()
-
-    private lazy var rangeFormatter: DateIntervalFormatter = {
-        let f = DateIntervalFormatter()
-        f.dateStyle = .medium
-        f.timeStyle = .none
-        return f
-    }()
+    // MARK: - Storyboard segues (set these identifiers in storyboard)
+    private let segueToMonthly = "toMonthlyReport"
+    private let segueToYearly  = "toYearlyReport"
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
-        startListening()
+        title = "Reports"
+        view.backgroundColor = .systemBackground
+
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ReportCell")
+
+        listenReports()
     }
 
     deinit { listener?.remove() }
 
-    // MARK: - UI
-    private func setupUI() {
-        view.backgroundColor = .systemGroupedBackground
-
-        tableView.backgroundColor = .systemGroupedBackground
-        tableView.separatorStyle = .none
-        tableView.sectionHeaderTopPadding = 16
-        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 24, right: 0)
-
-        tableView.dataSource = self
-        tableView.delegate = self
-
-        navigationItem.title = "Tech report record"
-    }
-
     // MARK: - Firestore
-    private func startListening() {
+    private func listenReports() {
         listener?.remove()
 
-        listener = db.collection("adminReports")
-            .order(by: "createdAt", descending: true)
-            .addSnapshotListener { [weak self] snapshot, error in
-                guard let self else { return }
+        let ref = db.collection("reports") // ✅ make sure this matches your Firebase collection name exactly
 
-                if let error {
-                    print("❌ Report list listen error:", error)
+        // 1) Try with orderBy first
+        listener = ref
+            .order(by: "createdAt", descending: true)
+            .addSnapshotListener { [weak self] snap, err in
+                guard let self = self else { return }
+
+                if let err = err {
+                    print("❌ Firestore listenReports error (orderBy):", err.localizedDescription)
+                    self.showAlert(title: "Reports Error", message: err.localizedDescription)
+
+                    // 2) Fallback: try without orderBy (in case createdAt missing / index issue)
+                    self.listener?.remove()
+                    self.listener = ref.addSnapshotListener { [weak self] snap2, err2 in
+                        guard let self = self else { return }
+
+                        if let err2 = err2 {
+                            print("❌ Firestore listenReports error (no orderBy):", err2.localizedDescription)
+                            self.showAlert(title: "Reports Error", message: err2.localizedDescription)
+                            return
+                        }
+
+                        let docs2 = snap2?.documents ?? []
+                        print("✅ reports docs (no orderBy):", docs2.count)
+
+                        self.reports = docs2.compactMap { ReportItem(doc: $0) }
+                        print("✅ parsed reports:", self.reports.count)
+
+                        DispatchQueue.main.async { self.tableView.reloadData() }
+                    }
+
                     return
                 }
 
-                let docs = snapshot?.documents ?? []
-                let all = docs.compactMap { ReportSummary(doc: $0) }
+                let docs = snap?.documents ?? []
+                print("✅ reports docs (orderBy):", docs.count)
 
-                self.monthlyReports = all.filter { $0.type == "monthly" }
-                self.yearlyReports = all.filter { $0.type == "yearly" }
+                self.reports = docs.compactMap { ReportItem(doc: $0) }
+                print("✅ parsed reports:", self.reports.count)
 
                 DispatchQueue.main.async { self.tableView.reloadData() }
             }
+        print("cellForRowAt called, reports count:", reports.count)
+
     }
 
-    // MARK: - Text
-    private func reportTitle(_ r: ReportSummary) -> String {
-        createdAtFormatter.string(from: r.createdAt)   // ✅ Title = createdAt
-    }
 
-    private func reportSubtitle(_ r: ReportSummary) -> String {
-        let period = rangeFormatter.string(from: r.periodStart, to: r.periodEnd)
-        let typeText = (r.type == "yearly") ? "Yearly" : "Monthly"
-        return "\(typeText) • \(period) • Assigned: \(r.assigned) • Done: \(r.completed)"
-    }
-
-    // MARK: - Segue (VC-to-VC only)
+    // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard let payload = sender as? (docId: String, type: String) else { return }
+        guard let report = sender as? ReportItem else { return }
 
-        // Handle UINavigationController embedding safely
-        let destination: UIViewController
-        if let nav = segue.destination as? UINavigationController {
-            destination = nav.viewControllers.first ?? nav
-        } else {
-            destination = segue.destination
+        if segue.identifier == segueToMonthly,
+           let vc = segue.destination as? MonthlyReportViewController {
+            vc.report = report
         }
 
-        // ✅ Best: typed passing (NO KVC crash)
-        if let receiver = destination as? AdminReportDocReceivable {
-            receiver.docId = payload.docId
-            receiver.type = payload.type
-        } else {
-            // Helpful debug to know what class you are actually navigating to
-            print("⚠️ Destination does not conform to AdminReportDocReceivable:", type(of: destination))
-
-            // Optional fallback ONLY if you later add @objc var docId/type on destination
-            // destination.setValue(payload.docId, forKey: "docId")
-            // destination.setValue(payload.type, forKey: "type")
+        if segue.identifier == segueToYearly,
+           let vc = segue.destination as? YearlyReportViewController {
+            vc.report = report
         }
+    }
+
+    // MARK: - Helpers
+    private func showAlert(title: String, message: String) {
+        DispatchQueue.main.async {
+            let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            a.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(a, animated: true)
+        }
+    }
+
+    private func dateText(_ date: Date) -> String {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        return df.string(from: date)
     }
 }
 
 // MARK: - UITableViewDataSource
 extension ReportViewController: UITableViewDataSource {
 
-    func numberOfSections(in tableView: UITableView) -> Int { 2 }
-
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        section == 0 ? monthlyReports.count : yearlyReports.count
+        reports.count
     }
 
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        // ✅ Use .subtitle so detailTextLabel exists
-        let reuse = "ReportCellSubtitle"
-        let cell = tableView.dequeueReusableCell(withIdentifier: reuse)
-            ?? UITableViewCell(style: .subtitle, reuseIdentifier: reuse)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ReportCell", for: indexPath)
+        let r = reports[indexPath.row]
 
-        cell.selectionStyle = .default
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .white
+        let assigned = r.totals["assigned"] ?? 0
+        let completed = r.totals["completed"] ?? 0
 
-        let item = (indexPath.section == 0)
-        ? monthlyReports[indexPath.row]
-        : yearlyReports[indexPath.row]
-
-        cell.textLabel?.text = reportTitle(item)
-        cell.textLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
-        cell.textLabel?.textColor = .label
-        cell.textLabel?.numberOfLines = 1
-
-        cell.detailTextLabel?.text = reportSubtitle(item)
-        cell.detailTextLabel?.font = .systemFont(ofSize: 12, weight: .regular)
-        cell.detailTextLabel?.textColor = .secondaryLabel
-        cell.detailTextLabel?.numberOfLines = 2
+        cell.textLabel?.numberOfLines = 0
+        cell.textLabel?.text =
+        """
+        \(r.type.capitalized) Report
+        Period: \(dateText(r.periodStart)) → \(dateText(r.periodEnd))
+        Totals: assigned \(assigned), completed \(completed)
+        Created by: \(r.createdBy)
+        """
 
         cell.accessoryType = .disclosureIndicator
         return cell
@@ -191,53 +148,17 @@ extension ReportViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension ReportViewController: UITableViewDelegate {
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { 86 }
-
-    func tableView(_ tableView: UITableView,
-                   willDisplay cell: UITableViewCell,
-                   forRowAt indexPath: IndexPath) {
-
-        cell.contentView.layer.cornerRadius = 12
-        cell.contentView.layer.masksToBounds = true
-        cell.contentView.layer.borderWidth = 1
-        cell.contentView.layer.borderColor = UIColor.systemGray5.cgColor
-    }
-
-    func tableView(_ tableView: UITableView,
-                   viewForHeaderInSection section: Int) -> UIView? {
-
-        let container = UIView()
-        container.backgroundColor = .clear
-
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = (section == 0) ? "Monthly Report" : "Yearly Report"
-        label.font = .systemFont(ofSize: 20, weight: .bold)
-        label.textColor = .label
-
-        container.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
-            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -6)
-        ])
-        return container
-    }
-
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { 48 }
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        let item = (indexPath.section == 0)
-        ? monthlyReports[indexPath.row]
-        : yearlyReports[indexPath.row]
+        let report = reports[indexPath.row]
+        let type = report.type.lowercased()
 
-        if item.type == "monthly" {
-            performSegue(withIdentifier: "ShowMonthlyReport",
-                         sender: (docId: item.docId, type: "monthly"))
+        if type == "monthly" {
+            performSegue(withIdentifier: segueToMonthly, sender: report)
         } else {
-            performSegue(withIdentifier: "ShowYearlyReport",
-                         sender: (docId: item.docId, type: "yearly"))
+            // treat anything else as yearly (matches your data "yearly")
+            performSegue(withIdentifier: segueToYearly, sender: report)
         }
     }
 }

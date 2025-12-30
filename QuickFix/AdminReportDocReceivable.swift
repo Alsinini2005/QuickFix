@@ -7,9 +7,8 @@
 
 import Foundation
 
-protocol AdminReportDocReceivable:AnyObject{
-    
-    var docId = String? { get set }
-    var type = String? { get set }
-    
+protocol AdminReportDocReceivable: AnyObject {
+    var docId: String? { get set }
+    var reportType: String? { get set }   // "monthly" / "yearly"
 }
+
