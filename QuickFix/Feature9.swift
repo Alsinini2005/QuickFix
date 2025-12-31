@@ -2,13 +2,12 @@
 //  TechnicianTableViewCell.swift
 //  QuickFix
 //
-//  Created by Zainab Aman on 20/12/2025.
+//  Created by Mohd Aman on 20/12/2025.
 //
 
 import UIKit
 
 struct Technician {
-    var image : UIImage
     var userID : String
     var name : String
     var email : String
@@ -18,11 +17,11 @@ struct Technician {
 }
 
 var arrTechnicians = [
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
+    Technician(userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
+    Technician(userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
+    Technician(userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
+    Technician(userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
+    Technician(userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
 
 ]
 extension UITableView {
@@ -161,7 +160,6 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
         let technician = arrTechnicians[technicianIndex]
 
         // Configure cell
-        cell.imgProfilePhoto.image = technician.image
         cell.lblName.text = technician.name
         cell.lblEmail.text = technician.email
 
@@ -254,11 +252,7 @@ class Feature9_2 : UIViewController {
     @IBOutlet weak var lblPhoneNumber: UILabel!
     @IBAction func btnEdit(_ sender: Any) {
         print("Using Edit button...")
-//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//            let vc = storyboard.instantiateViewController(withIdentifier: "Feature9_3") as! Feature9_3
-//            vc.technician = technician
-//            vc.technicianIndex = technicianIndex  // ← You might have forgotten this line!
-//            self.navigationController?.pushViewController(vc, animated: true)
+
     }
     
     
@@ -277,7 +271,6 @@ class Feature9_2 : UIViewController {
     func updateUI() {
         guard let tech = technician else { return }
 
-        imgProfilePhoto.image = tech.image
         lblUserID.text = tech.userID
         lblFullName.text = tech.name
         lblEmailAddress.text = tech.email
@@ -297,15 +290,6 @@ class Feature9_2 : UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
-//         imgProfilePhoto.image = technician?.image
-//         lblUserID.text = technician?.userID
-//         lblFullName.text = technician?.name
-//         lblEmailAddress.text = technician?.email
-//         lblPassword.text = technician?.password
-//         lblPhoneNumber.text = "+973 \(technician?.phoneNumber)"
-        print("F2\nIs? \(technicianIndex)\nNot? \(technician)")
-
         lblUserID.applySoftBorder()
         lblFullName.applySoftBorder()
         lblEmailAddress.applySoftBorder()
@@ -352,7 +336,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         txtPhoneNumber.addLeftPadding(5)
 
         if let tech = technician {
-            imgProfilePhoto.image = tech.image
             txtUserID.text = tech.userID
             txtFullName.text = (tech.name)
             txtEmailAddress.text = tech.email
@@ -361,7 +344,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         }
         
         
-                print("F3\nIs? \(technicianIndex)\nNot? \(technician)")
         txtUserID.applySoftBorder()
         txtFullName.applySoftBorder()
         txtEmailAddress.applySoftBorder()
@@ -397,7 +379,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             self.present(alert, animated: true)
             return
         }
-        print("technicianIndex=\(technicianIndex)")
+        
         
         guard let index = technicianIndex else {  let alert = UIAlertController(title: "Error", message: "Unable to save changes. Technician data is missing.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -410,7 +392,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
                return
            }
          arrTechnicians[index] = Technician(
-                        image: imgProfilePhoto.image ?? UIImage(),
                         userID: userID,
                         name: name,
                         email: email,
@@ -524,8 +505,7 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         imgProfilePhoto.image = UIImage(named: "imgProfilePhoto")!
         
         
-        btnAddTechnician.isHidden = true   // or isEnabled = false
-            // Listen for text changes
+        btnAddTechnician.isHidden = true
         txtUserID.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtFullName.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtEmailAddress.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
@@ -555,8 +535,6 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
             !(txtPhoneNumber.text?.isEmpty ?? true)
 
         btnAddTechnician.isHidden = !allFilled
-        // OR:
-        // btnAddTechnician.isEnabled = allFilled
     }
     
     
@@ -573,7 +551,6 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
 
            arrTechnicians.append(
                Technician(
-                   image: UIImage(named: "imgProfilePhoto")!,
                    userID: txtUserID.text!,
                    name: txtFullName.text!,
                    email: txtEmailAddress.text!,

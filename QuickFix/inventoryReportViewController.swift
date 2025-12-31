@@ -1,7 +1,7 @@
 import UIKit
 import FirebaseFirestore
 
-final class ReportViewController: UIViewController {
+final class inventoryReportViewController: UIViewController {
 
     @IBOutlet weak var summaryLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
@@ -20,6 +20,8 @@ final class ReportViewController: UIViewController {
 
         tableView.dataSource = self
         tableView.rowHeight = 64
+
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reportCell")
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -49,11 +51,27 @@ final class ReportViewController: UIViewController {
                     for it in items {
                         let part = it["partNumber"] as? String ?? ""
                         let name = it["name"] as? String ?? "(no name)"
-                        let qty = it["qty"] as? Int ?? 0
+                        let qtyAny = it["qty"]
+
+                        let qty: Int
+                        if let i = qtyAny as? Int {
+                            qty = i
+                        } else if let i64 = qtyAny as? Int64 {
+                            qty = Int(i64)
+                        } else if let d = qtyAny as? Double {
+                            qty = Int(d)
+                        } else {
+                            qty = 0
+                        }
+
                         guard !part.isEmpty, qty > 0 else { continue }
 
                         if let existing = agg[part] {
-                            agg[part] = UsedItem(partNumber: existing.partNumber, name: existing.name, qty: existing.qty + qty)
+                            agg[part] = UsedItem(
+                                partNumber: existing.partNumber,
+                                name: existing.name,
+                                qty: existing.qty + qty
+                            )
                         } else {
                             agg[part] = UsedItem(partNumber: part, name: name, qty: qty)
                         }
@@ -63,14 +81,18 @@ final class ReportViewController: UIViewController {
                 self.results = agg.values.sorted { $0.qty > $1.qty }
 
                 let totalQty = self.results.reduce(0) { $0 + $1.qty }
-                self.summaryLabel.text = "Month: \(self.month)/\(self.year)\nTotal Items: \(self.results.count)\nTotal Quantity: \(totalQty)"
+                self.summaryLabel.text =
+                    "Month: \(self.month)/\(self.year)\n" +
+                    "Total Items: \(self.results.count)\n" +
+                    "Total Quantity: \(totalQty)"
 
                 self.tableView.reloadData()
             }
     }
 }
 
-extension ReportViewController: UITableViewDataSource {
+extension inventoryReportViewController: UITableViewDataSource {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         results.count
     }
@@ -78,13 +100,12 @@ extension ReportViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "reportCell")
-        let item = results[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "reportCell", for: indexPath)
 
-        cell.textLabel?.text = item.name
-        cell.detailTextLabel?.text = "ID: \(item.partNumber) | Used Qty: \(item.qty)"
+        cell.textLabel?.text = results[indexPath.row].name
+        cell.detailTextLabel?.text = nil
+
         cell.selectionStyle = .none
         return cell
     }
 }
-

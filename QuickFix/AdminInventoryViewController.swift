@@ -1,6 +1,5 @@
 import UIKit
 import FirebaseFirestore
-
 import Foundation
 
 // Firebase is the database. These are just models for UI.
@@ -11,11 +10,10 @@ struct InventoryItem: Hashable {
 }
 
 struct UsedItem: Hashable {
-    let partNumber: String   // Firestore documentID
+    let partNumber: String
     let name: String
     let qty: Int
 }
-
 
 final class AdminInventoryViewController: UIViewController {
 
@@ -37,7 +35,7 @@ final class AdminInventoryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = "Inventory Managment"
+        title = "Inventory Management"
         view.backgroundColor = .systemBackground
 
         tableView.dataSource = self
@@ -57,7 +55,7 @@ final class AdminInventoryViewController: UIViewController {
         yearField.text = "\(year)"
         monthPicker.selectRow(month - 1, inComponent: 0, animated: false)
 
-        // ✅ No Done toolbar — tap anywhere to dismiss keyboard
+        // Tap anywhere to dismiss keyboard
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
@@ -91,7 +89,7 @@ final class AdminInventoryViewController: UIViewController {
                     return InventoryItem(
                         partNumber: doc.documentID,
                         name: data["name"] as? String ?? "(no name)",
-                        stockQty: data["quantity"] as? Int ?? 0
+                        stockQty: Self.toInt(data["quantity"])
                     )
                 }
 
@@ -152,14 +150,16 @@ final class AdminInventoryViewController: UIViewController {
         let selectedMonth = monthPicker.selectedRow(inComponent: 0) + 1
         let selectedYear = Int(yearField.text ?? "") ?? Calendar.current.component(.year, from: Date())
 
+        // If report screen is embedded in Navigation Controller
         if let nav = segue.destination as? UINavigationController,
-           let reportVC = nav.topViewController as? ReportViewController {
+           let reportVC = nav.topViewController as? inventoryReportViewController {
             reportVC.month = selectedMonth
             reportVC.year = selectedYear
             return
         }
 
-        if let reportVC = segue.destination as? ReportViewController {
+        // If report screen is pushed directly
+        if let reportVC = segue.destination as? inventoryReportViewController {
             reportVC.month = selectedMonth
             reportVC.year = selectedYear
             return
@@ -185,6 +185,14 @@ final class AdminInventoryViewController: UIViewController {
         tf.addTarget(self, action: #selector(stockChanged(_:)), for: .editingChanged)
         tf.semanticContentAttribute = .forceLeftToRight
         return tf
+    }
+
+    // Helper: Firestore often stores numbers as Int64 or Double
+    private static func toInt(_ value: Any?) -> Int {
+        if let i = value as? Int { return i }
+        if let i64 = value as? Int64 { return Int(i64) }
+        if let d = value as? Double { return Int(d) }
+        return 0
     }
 }
 
@@ -216,4 +224,3 @@ extension AdminInventoryViewController: UIPickerViewDataSource, UIPickerViewDele
         months[row]
     }
 }
-
