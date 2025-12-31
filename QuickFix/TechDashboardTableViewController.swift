@@ -2,7 +2,7 @@
 //  TechDashboardTableViewController.swift
 //  QuickFix
 //
-//  Created by BP-36-212-03 on 28/12/2025.
+//  Created by Faisal Alsinini on 28/12/2025.
 //
 import UIKit
 import FirebaseAuth
