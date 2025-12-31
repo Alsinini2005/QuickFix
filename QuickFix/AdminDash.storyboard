@@ -501,10 +501,10 @@
                             <outlet property="delegate" destination="GTf-mo-tEf" id="39e-Jq-8sB"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" id="JSH-aE-bcb">
-                        <barButtonItem key="rightBarButtonItem" style="plain" id="abj-LA-z8O">
+                    <toolbarItems>
+                        <barButtonItem style="plain" id="abj-LA-z8O">
                             <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="Mte-cR-QRG">
-                                <rect key="frame" x="246" y="0.0" width="131" height="44"/>
+                                <rect key="frame" x="16" y="5" width="361" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="tinted" title="Assign"/>
@@ -513,7 +513,9 @@
                                 </connections>
                             </button>
                         </barButtonItem>
-                    </navigationItem>
+                    </toolbarItems>
+                    <navigationItem key="navigationItem" id="JSH-aE-bcb"/>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="assignButton" destination="Mte-cR-QRG" id="TkW-dx-jRx"/>
                         <outlet property="tableView" destination="AKt-h6-B6j" id="b4l-Ba-K1C"/>
