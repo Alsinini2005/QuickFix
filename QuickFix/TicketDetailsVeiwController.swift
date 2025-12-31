@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 final class TicketDetailsViewController: UIViewController {
 
@@ -134,13 +135,13 @@ final class TicketDetailsViewController: UIViewController {
     private func startListeningTicket() {
         listener?.remove()
 
-        listener = db.collection("requests")
+        listener = db.collection("StudentRepairRequests")
             .document(requestId)
             .addSnapshotListener { [weak self] snap, error in
                 guard let self else { return }
 
                 if let error {
-                    print("❌ Ticket details listen error:", error)
+                    print("❌ Ticket details listen error:", error.localizedDescription)
                     return
                 }
 
@@ -149,13 +150,11 @@ final class TicketDetailsViewController: UIViewController {
                     return
                 }
 
-                self.applyTicketData(data, docId: snap?.documentID ?? self.requestId)
+                self.applyTicketData(data, docId: snap?.documentID ?? (self.requestId ?? "-"))
             }
     }
 
     private func applyTicketData(_ data: [String: Any], docId: String) {
-        // DB fields you showed:
-        // title (String), campus (String), building (Int), status (String), createdAt (Timestamp)
 
         let title = (data["title"] as? String) ?? "-"
         let campus = (data["campus"] as? String) ?? "-"
@@ -180,17 +179,33 @@ final class TicketDetailsViewController: UIViewController {
         // urgency OPTIONAL
         let urgency = (data["urgency"] as? String) ?? "Normal"
 
+        // classroom OPTIONAL
+        let classroomText: String
+        if let c = data["classroom"] as? Int {
+            classroomText = "\(c)"
+        } else if let c = data["classroom"] as? String {
+            classroomText = c
+        } else {
+            classroomText = "-"
+        }
+
         // Fill labels
         ticketIdLabel.text = docId
         ticketNameLabel.text = title
         campusLabel.text = campus
-        buildingLabel.text = buildingText
+
+        if classroomText != "-" {
+            buildingLabel.text = "\(buildingText)  |  Room \(classroomText)"
+        } else {
+            buildingLabel.text = buildingText
+        }
+
         statusLabel.text = prettyStatus(statusRaw)
         createdLabel.text = createdText
         urgencyLabel.text = urgency
 
-        // image OPTIONAL (imageURL)
-        if let urlString = data["imageURL"] as? String, !urlString.isEmpty {
+        // image OPTIONAL (imageUrl)
+        if let urlString = data["imageUrl"] as? String, !urlString.isEmpty {
             loadImage(from: urlString)
         } else {
             ticketImageView.image = nil
@@ -209,7 +224,6 @@ final class TicketDetailsViewController: UIViewController {
     private func loadImage(from urlString: String) {
         guard let url = URL(string: urlString) else { return }
 
-        // Simple loader without extra libraries
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self, let data, let img = UIImage(data: data) else { return }
             DispatchQueue.main.async { self.ticketImageView.image = img }
@@ -236,9 +250,17 @@ final class TicketDetailsViewController: UIViewController {
         }
     }
 
-    // MARK: - Assign button (optional)
+    // MARK: - Assign button
     @IBAction private func didTapAssign(_ sender: UIButton) {
-        // put your assign logic / segue here
-        print("Assign tapped for request:", requestId ?? "nil")
+        // ✅ Move to AssignTask screen
+        performSegue(withIdentifier: "showAssignTask", sender: nil)
+    }
+
+    // MARK: - Pass requestId to AssignTask
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showAssignTask",
+           let vc = segue.destination as? AssignTaskVeiwController {
+            vc.requestDocId = self.requestId ?? ""
+        }
     }
 }

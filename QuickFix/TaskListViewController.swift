@@ -134,7 +134,8 @@ final class TaskListViewController: UIViewController {
     private func startListening() {
         listener?.remove()
 
-        listener = db.collection("requests")
+        // Admin: list ALL student repair requests
+        listener = db.collection("StudentRepairRequests")
             .order(by: "createdAt", descending: true)
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self else { return }
