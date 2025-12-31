@@ -78,7 +78,7 @@
         <!--Add New Request-->
         <scene sceneID="tfz-gU-gJE">
             <objects>
-                <viewController id="alI-2o-yOg" customClass="Requests" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="alI-2o-yOg" customClass="AddNewRequestViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="cQA-Mg-xiY">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -99,7 +99,7 @@
                                                 </menu>
                                                 <state key="normal" title="Select Campus"/>
                                                 <connections>
-                                                    <action selector="campusButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="4MT-mv-bEK"/>
+                                                    <action selector="campusButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="4sY-dc-yWz"/>
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Building Number" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WB2-8H-ldW">
@@ -130,7 +130,7 @@
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <textInputTraits key="textInputTraits"/>
                                             </textField>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Problem Description" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XQC-QY-dhN">
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Problem" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XQC-QY-dhN">
                                                 <rect key="frame" x="25" y="290" width="155" height="21"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
@@ -152,7 +152,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="gray" title="Upload"/>
                                                 <connections>
-                                                    <action selector="uploadImageTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="dOQ-ha-lRD"/>
+                                                    <action selector="uploadImageTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="rUQ-i7-cSw"/>
                                                 </connections>
                                             </button>
                                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="eXO-WI-A9G">
@@ -163,7 +163,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="gray" title="Submit"/>
                                                 <connections>
-                                                    <action selector="submitButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="z6R-oV-nxK"/>
+                                                    <action selector="submitButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="Vev-RV-EQQ"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -241,16 +241,16 @@
                     <tabBarItem key="tabBarItem" title="Add " selectedImage="plus.app" catalog="system" id="FJs-pr-TsV"/>
                     <navigationItem key="navigationItem" title="Add New Request" id="QsP-mV-Esj"/>
                     <connections>
-                        <outlet property="buildingTextField" destination="n8J-38-FJ4" id="hub-Mi-3HQ"/>
-                        <outlet property="campusTextField" destination="Uya-Ek-xql" id="qvw-8c-HpO"/>
-                        <outlet property="classroomTextField" destination="lqg-UM-hzQ" id="QtP-3K-VkA"/>
-                        <outlet property="descriptionTextView" destination="VyC-i6-BIc" id="asH-CU-ncW"/>
-                        <outlet property="previewImageView" destination="eXO-WI-A9G" id="fKv-FY-vcc"/>
+                        <outlet property="buildingTextField" destination="n8J-38-FJ4" id="tB0-Os-EhR"/>
+                        <outlet property="campusTextField" destination="Uya-Ek-xql" id="upl-4K-BF0"/>
+                        <outlet property="classroomTextField" destination="lqg-UM-hzQ" id="CFk-7v-4WZ"/>
+                        <outlet property="descriptionTextField" destination="VyC-i6-BIc" id="VBX-xF-JTY"/>
+                        <outlet property="previewImageView" destination="eXO-WI-A9G" id="AOE-QZ-A9k"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Y7v-OF-98g" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-13" y="913"/>
+            <point key="canvasLocation" x="184" y="837"/>
         </scene>
         <!--Dashboard-->
         <scene sceneID="KNZ-hg-h26">

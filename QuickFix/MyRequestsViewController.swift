@@ -49,6 +49,8 @@ private struct RequestRow {
     static func from(doc: QueryDocumentSnapshot) -> RequestRow? {
         let d = doc.data()
 
+        // Firestore fields (based on your StudentRepairRequests collection):
+        // title (String), createdAt (Timestamp), status (String)
         guard
             let title = d["title"] as? String,
             let ts = d["createdAt"] as? Timestamp,
@@ -78,7 +80,6 @@ final class MyRequestsViewController: UIViewController {
 
     // MARK: - Data
     private var rows: [RequestRow] = []
-    private var numericUserId: Int?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -139,57 +140,40 @@ final class MyRequestsViewController: UIViewController {
             return
         }
 
-        Task { [weak self] in
-            guard let self else { return }
+        // Your Firebase screenshot shows the collection name is "StudentRepairRequests"
+        // and userId is stored as STRING.
+        //
+        // To be extra-safe with older data, we also match a short id (first 6 chars)
+        // in case you previously saved a shortened user id.
+        let shortUid = String(authUid.prefix(6))
 
-            do {
-                // requests collection uses numeric userId
-                let numericUserId = try await self.fetchNumericUserId(authUid: authUid)
-                self.numericUserId = numericUserId
+        listener?.remove()
+        listener = db.collection("StudentRepairRequests")
+            .order(by: "createdAt", descending: true)
+            .addSnapshotListener { [weak self] snap, err in
+                guard let self else { return }
 
-                // Move listener creation OUTSIDE nested closures problems
-                self.listener?.remove()
-                self.listener = self.db.collection("requests")
-                    .whereField("userId", isEqualTo: numericUserId)
-                    .order(by: "createdAt", descending: true)
-                    .addSnapshotListener { [weak self] snap, err in
-                        guard let self else { return }
+                if let err {
+                    print("MyRequests listen error:", err)
+                    return
+                }
 
-                        if let err {
-                            print("MyRequests listen error:", err)
-                            return
-                        }
+                let docs = snap?.documents ?? []
 
-                        let docs = snap?.documents ?? []
-                        self.rows = docs.compactMap { RequestRow.from(doc: $0) }
+                // Filter to the current user on the client.
+                // (Firestore OR queries require extra setup; this is simplest for a student project.)
+                let filtered = docs.filter { doc in
+                    let d = doc.data()
+                    let uidField = d["userId"] as? String
+                    return uidField == authUid || uidField == shortUid
+                }
 
-                        DispatchQueue.main.async {
-                            self.tableView.reloadData()
-                        }
-                    }
+                self.rows = filtered.compactMap { RequestRow.from(doc: $0) }
 
-            } catch {
-                print("Failed to read numeric userId:", error)
-                self.rows = []
-                DispatchQueue.main.async { self.tableView.reloadData() }
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
             }
-        }
-    }
-
-    /// Reads numeric userId from Firestore: users/{authUid}.userId
-    private func fetchNumericUserId(authUid: String) async throws -> Int {
-        let snap = try await db.collection("users").document(authUid).getDocument()
-        let data = snap.data() ?? [:]
-
-        if let n = data["userId"] as? Int { return n }
-        if let n = data["userId"] as? Int64 { return Int(n) }
-        if let n = data["userId"] as? Double { return Int(n) }
-
-        throw NSError(
-            domain: "User",
-            code: 0,
-            userInfo: [NSLocalizedDescriptionKey: "Numeric userId not found in users collection."]
-        )
     }
 
     // MARK: - Cell UI

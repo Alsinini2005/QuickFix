@@ -13,7 +13,7 @@
         <scene sceneID="uc9-Ze-mMi">
             <objects>
                 <navigationController id="cH6-VA-c03" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Item" id="g7g-1V-Xxr"/>
+                    <tabBarItem key="tabBarItem" title="Item" image="doc" catalog="system" selectedImage="doc" id="g7g-1V-Xxr"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="yVK-dA-hx8">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -37,7 +37,7 @@
         <scene sceneID="bJR-Cb-GEI">
             <objects>
                 <navigationController id="vHk-4w-pOf" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Item" id="xMG-GO-iWA"/>
+                    <tabBarItem key="tabBarItem" title="Item" image="list.bullet.clipboard.fill" catalog="system" selectedImage="list.bullet.clipboard.fill" id="xMG-GO-iWA"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="hd0-4T-a6k">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -94,6 +94,7 @@
                                                     </subviews>
                                                     <color key="backgroundColor" red="0.72156864399999998" green="0.72156864399999998" blue="0.72941178080000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     <constraints>
+                                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="PWH-a0-d2a" secondAttribute="trailing" constant="20" symbolic="YES" id="3kd-bz-G1i"/>
                                                         <constraint firstAttribute="bottom" secondItem="Bmw-uL-qVw" secondAttribute="bottom" constant="14" id="OFB-22-zzq"/>
                                                         <constraint firstItem="Bmw-uL-qVw" firstAttribute="leading" secondItem="pm5-ba-Kh6" secondAttribute="leading" constant="24" id="WRB-Ec-CaH"/>
                                                         <constraint firstItem="Bmw-uL-qVw" firstAttribute="top" secondItem="pm5-ba-Kh6" secondAttribute="top" constant="15" id="eob-pX-IPi"/>
@@ -122,6 +123,7 @@
                                                     <constraints>
                                                         <constraint firstItem="35n-RC-7hD" firstAttribute="top" secondItem="zp1-xp-HEg" secondAttribute="top" constant="15" id="O8T-Az-gCH"/>
                                                         <constraint firstAttribute="bottom" secondItem="YB3-F9-sEf" secondAttribute="bottom" constant="14" id="X9k-c0-5UF"/>
+                                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="YB3-F9-sEf" secondAttribute="trailing" constant="20" symbolic="YES" id="YyJ-Ak-Wnq"/>
                                                         <constraint firstItem="35n-RC-7hD" firstAttribute="leading" secondItem="zp1-xp-HEg" secondAttribute="leading" constant="24" id="gIb-Ip-joc"/>
                                                         <constraint firstAttribute="bottom" secondItem="35n-RC-7hD" secondAttribute="bottom" constant="14" id="kCK-WH-0aH"/>
                                                         <constraint firstItem="YB3-F9-sEf" firstAttribute="leading" secondItem="35n-RC-7hD" secondAttribute="trailing" constant="8.6699999999999999" id="pF8-c6-irQ"/>
@@ -150,6 +152,7 @@
                                                         <constraint firstAttribute="bottom" secondItem="W15-xv-tg3" secondAttribute="bottom" constant="14" id="R4M-dQ-cGi"/>
                                                         <constraint firstItem="xet-Dk-G1a" firstAttribute="leading" secondItem="W15-xv-tg3" secondAttribute="trailing" constant="8.7599999999999998" id="UWo-WF-vsV"/>
                                                         <constraint firstItem="xet-Dk-G1a" firstAttribute="top" secondItem="9Bt-it-RSd" secondAttribute="top" constant="15" id="Ykb-1y-E1l"/>
+                                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="xet-Dk-G1a" secondAttribute="trailing" constant="20" symbolic="YES" id="cO0-12-wM8"/>
                                                         <constraint firstAttribute="bottom" secondItem="xet-Dk-G1a" secondAttribute="bottom" constant="14" id="klD-a2-2Z2"/>
                                                         <constraint firstItem="W15-xv-tg3" firstAttribute="top" secondItem="9Bt-it-RSd" secondAttribute="top" constant="15" id="y9m-bx-02d"/>
                                                     </constraints>
@@ -192,7 +195,7 @@
                             <outlet property="delegate" destination="HCD-Iv-Eat" id="YlA-fm-52g"/>
                         </connections>
                     </tableView>
-                    <tabBarItem key="tabBarItem" title="Task List" image="list.bullet.clipboard.fill" catalog="system" id="kdD-qv-v6N"/>
+                    <tabBarItem key="tabBarItem" title="Task List" image="list.bullet.clipboard.fill" catalog="system" selectedImage="list.bullet.clipboard.fill" id="kdD-qv-v6N"/>
                     <navigationItem key="navigationItem" title="Task List" id="JaQ-m9-GVG"/>
                     <connections>
                         <outlet property="tableView" destination="by2-ly-Rsa" id="Hou-Wc-eXN"/>
@@ -528,7 +531,7 @@
         <!--Report-->
         <scene sceneID="wu9-yt-w65">
             <objects>
-                <tableViewController id="451-Vb-DV1" customClass="ReportViewController" sceneMemberID="viewController">
+                <tableViewController id="451-Vb-DV1" customClass="ReportViewController" customModule="QuickFix" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="xBd-Sa-gnK">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -546,7 +549,7 @@
                             <outlet property="delegate" destination="451-Vb-DV1" id="ZSd-WM-eKP"/>
                         </connections>
                     </tableView>
-                    <tabBarItem key="tabBarItem" title="Report" image="doc" catalog="system" id="iFP-Q5-Mis"/>
+                    <tabBarItem key="tabBarItem" title="Report" image="doc" catalog="system" selectedImage="doc" id="iFP-Q5-Mis"/>
                     <navigationItem key="navigationItem" title="Report" id="0uo-ZR-sTz">
                         <barButtonItem key="rightBarButtonItem" image="plus.app" catalog="system" id="APz-l9-ypJ">
                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -556,12 +559,14 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="tableView" destination="xBd-Sa-gnK" id="yLK-8n-5cJ"/>
+                        <outlet property="tableView" destination="xBd-Sa-gnK" id="dbg-3T-kxr"/>
+                        <segue destination="DRy-4h-MtU" kind="show" identifier="toMonthlyReport" id="jvg-Tp-JgS"/>
+                        <segue destination="Pqi-Ys-bMl" kind="show" identifier="toYearlyReport" id="WEm-eO-DZw"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XpX-4U-S3b" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="467.93893129770993" y="5.6338028169014089"/>
+            <point key="canvasLocation" x="497" y="-46"/>
         </scene>
         <!--Monthly Report View Controller-->
         <scene sceneID="nDt-GE-t6j">
@@ -780,7 +785,7 @@
         <scene sceneID="75B-wN-Vh0">
             <objects>
                 <navigationController id="MNb-x8-bdR" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Dashboard" selectedImage="house.fill" catalog="system" id="Usc-Dx-Kxb"/>
+                    <tabBarItem key="tabBarItem" title="Dashboard" image="house.fill" catalog="system" selectedImage="house.fill" id="Usc-Dx-Kxb"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="6W4-kW-FPc">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -937,7 +942,7 @@
                             <constraint firstItem="NSg-70-4Ri" firstAttribute="top" secondItem="EaE-md-BNk" secondAttribute="bottom" constant="10" id="shJ-Wj-GlE"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Dashboard" selectedImage="house.fill" catalog="system" id="jD7-EH-s1R"/>
+                    <tabBarItem key="tabBarItem" title="Dashboard" image="house.fill" catalog="system" selectedImage="house.fill" id="jD7-EH-s1R"/>
                     <navigationItem key="navigationItem" title="Dashboard" id="4ai-1m-GvV"/>
                     <connections>
                         <outlet property="completedCountLabel" destination="qYh-rk-OeZ" id="eAe-gO-y8D"/>
@@ -1036,7 +1041,7 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray5Color">
-            <color red="0.89803921568627454" green="0.89803921568627454" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.8980392157" green="0.8980392157" blue="0.91764705879999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
