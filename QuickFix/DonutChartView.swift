@@ -1,3 +1,10 @@
+//
+//  DonutChartView.swift
+//  PolyTech
+//
+//  Created by BP-19-130-05 on 15/12/2025.
+//
+
 import UIKit
 
 class DonutChartView: UIView {
@@ -75,4 +82,13 @@ class DonutChartView: UIView {
         
         
     }
+
+    /*
+    // Only override draw() if you perform custom drawing.
+    // An empty implementation adversely affects performance during animation.
+    override func draw(_ rect: CGRect) {
+        // Drawing code
+    }
+    */
+
 }
