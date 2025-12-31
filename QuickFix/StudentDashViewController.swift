@@ -13,7 +13,7 @@ import FirebaseFirestore
 
 final class StudentDashViewController: UIViewController {
 
-    // MARK: - Outlets (connect in storyboard)
+    // MARK: - Outlets 
 
     @IBOutlet private weak var welcomeLabel: UILabel!
     @IBOutlet private weak var quickActionsLabel: UILabel!

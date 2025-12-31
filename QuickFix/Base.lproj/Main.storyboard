@@ -662,7 +662,7 @@
                                                                 <state key="normal" title="Button"/>
                                                                 <buttonConfiguration key="configuration" style="plain" title="Generate"/>
                                                                 <connections>
-                                                                    <action selector="generateMonthlyTapped:" destination="6Bs-Ol-u2q" eventType="touchUpInside" id="3SK-ek-rGg"/>
+                                                                    <action selector="generateMonthlyTapped:" destination="6Bs-Ol-u2q" eventType="touchUpInside" id="hx5-Xn-UkU"/>
                                                                 </connections>
                                                             </button>
                                                         </subviews>
@@ -713,7 +713,7 @@
                                                                 <state key="normal" title="Button"/>
                                                                 <buttonConfiguration key="configuration" style="plain" title="Generate"/>
                                                                 <connections>
-                                                                    <action selector="generateYearlyTapped:" destination="6Bs-Ol-u2q" eventType="touchUpInside" id="6o2-1u-fhB"/>
+                                                                    <action selector="generateYearlyTapped:" destination="6Bs-Ol-u2q" eventType="touchUpInside" id="R22-tT-WLj"/>
                                                                 </connections>
                                                             </button>
                                                         </subviews>
@@ -766,10 +766,10 @@
                     </view>
                     <navigationItem key="navigationItem" id="GaS-f0-qd5"/>
                     <connections>
-                        <outlet property="monthlyFromPicker" destination="8Zu-I8-Lcy" id="Vox-Oa-Gsf"/>
-                        <outlet property="monthlyToPicker" destination="npb-zO-TRj" id="1C8-cg-gZr"/>
-                        <outlet property="yearlyFromPicker" destination="hx0-hV-ybC" id="Gwu-7r-d6k"/>
-                        <outlet property="yearlyToPicker" destination="tQI-C3-0D4" id="gDI-F4-ev9"/>
+                        <outlet property="monthlyFromPicker" destination="8Zu-I8-Lcy" id="Uzd-8H-FOi"/>
+                        <outlet property="monthlyToPicker" destination="npb-zO-TRj" id="NgH-Ki-Jwl"/>
+                        <outlet property="yearlyFromPicker" destination="hx0-hV-ybC" id="dOL-1j-ECz"/>
+                        <outlet property="yearlyToPicker" destination="tQI-C3-0D4" id="xf5-oV-nqx"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NUr-Ni-tgq" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -872,10 +872,10 @@
             </objects>
             <point key="canvasLocation" x="1349" y="397"/>
         </scene>
-        <!--Dashboard-->
+        <!--Admin Dashboard-->
         <scene sceneID="N08-1s-X6O">
             <objects>
-                <viewController storyboardIdentifier="AdminDashboardViewController" id="5pD-Uh-7Dx" customClass="AdminDashboardViewController" customModule="PolyTech" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="AdminDashboardViewController" id="5pD-Uh-7Dx" customClass="AdminDashboardViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="OxX-2d-5Gp">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1130,7 +1130,7 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Dashboard" image="house.fill" catalog="system" selectedImage="house.fill" id="fSE-2l-TgD"/>
-                    <navigationItem key="navigationItem" id="VRX-zs-MoD"/>
+                    <navigationItem key="navigationItem" title="Admin Dashboard" id="VRX-zs-MoD"/>
                     <connections>
                         <outlet property="completedLabel" destination="Dgk-MW-PuU" id="pJB-ud-qaE"/>
                         <outlet property="completedStatusLabel" destination="mds-Tr-llh" id="gf8-nn-gFI"/>
@@ -1149,7 +1149,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ZwQ-Qn-cDD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2127" y="-915"/>
+            <point key="canvasLocation" x="735" y="-866"/>
         </scene>
     </scenes>
     <resources>

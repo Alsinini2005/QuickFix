@@ -1,94 +1,106 @@
-//
-//  DonutChartView.swift
-//  PolyTech
-//
-//  Created by BP-19-130-05 on 15/12/2025.
-//
-
 import UIKit
 
-class DonutChartView: UIView {
-    
+final class DonutChartView: UIView {
+
     struct Segment {
         let value: CGFloat
         let color: UIColor
     }
-    
+
     var segments: [Segment] = [] {
         didSet { setNeedsLayout() }
     }
-    
-    private let ringLayer = CAShapeLayer()
+
+    private let holeLayer = CAShapeLayer()
     private var segmentLayers: [CAShapeLayer] = []
-    
+
+    private var lastBounds: CGRect = .zero
+    private var lastSignature: String = ""
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         commonInit()
     }
-    
+
     private func commonInit() {
         backgroundColor = .clear
-        layer.addSublayer(ringLayer)
+        layer.addSublayer(holeLayer)
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
+        drawChartIfNeeded()
+    }
+
+    private func drawChartIfNeeded() {
+        // Prevent heavy redraw loops
+        let signature = segments.map { "\($0.value)" }.joined(separator: "|")
+        guard bounds != .zero else { return }
+        guard bounds != lastBounds || signature != lastSignature else { return }
+
+        lastBounds = bounds
+        lastSignature = signature
         drawChart()
     }
-    
+
     private func drawChart() {
+        // Remove old layers
         segmentLayers.forEach { $0.removeFromSuperlayer() }
         segmentLayers.removeAll()
-        
-        let total = segments.reduce(0) { $0 + $1.value }
-        guard total > 0 else { return }
-        
+
+        let total = segments.reduce(CGFloat(0)) { $0 + $1.value }
+        guard total > 0 else {
+            holeLayer.path = nil
+            return
+        }
+
         let lineWidth: CGFloat = max(10, min(bounds.width, bounds.height) * 0.18)
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
         let radius = min(bounds.width, bounds.height) / 2 - lineWidth / 2
-        
+
         var startAngle: CGFloat = -.pi / 2
-        
-        for seg in segments {
+
+        for seg in segments where seg.value > 0 {
             let endAngle = startAngle + (2 * .pi) * (seg.value / total)
-            
+
             let path = UIBezierPath(
-                arcCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
-            
-            let layer = CAShapeLayer()
-            layer.path = path.cgPath
-            layer.fillColor = UIColor.clear.cgColor
-            layer.strokeColor = seg.color.cgColor
-            layer.lineWidth = lineWidth
-            layer.lineCap = .butt
-            
-            self.layer.addSublayer(layer)
-            segmentLayers.append(layer)
-            
+                arcCenter: center,
+                radius: radius,
+                startAngle: startAngle,
+                endAngle: endAngle,
+                clockwise: true
+            )
+
+            let segLayer = CAShapeLayer()
+            segLayer.path = path.cgPath
+            segLayer.fillColor = UIColor.clear.cgColor
+            segLayer.strokeColor = seg.color.cgColor
+            segLayer.lineWidth = lineWidth
+            segLayer.lineCap = .butt
+
+            layer.addSublayer(segLayer)
+            segmentLayers.append(segLayer)
+
             startAngle = endAngle
         }
-        
-        let hole = UIBezierPath(
-            arcCenter: center, radius: radius - lineWidth / 2, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
-        
-        ringLayer.path = hole.cgPath
-        ringLayer.fillColor = UIColor.systemBackground.cgColor
-        ringLayer.strokeColor = UIColor.clear.cgColor
-        
-        
-    }
 
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
-    }
-    */
+        // Draw the hole in the center
+        let holePath = UIBezierPath(
+            arcCenter: center,
+            radius: max(0, radius - lineWidth / 2),
+            startAngle: 0,
+            endAngle: 2 * .pi,
+            clockwise: true
+        )
 
+        holeLayer.path = holePath.cgPath
+        holeLayer.fillColor = UIColor.systemBackground.cgColor
+        holeLayer.strokeColor = UIColor.clear.cgColor
+        holeLayer.zPosition = 999 // ensure on top
+    }
 }
