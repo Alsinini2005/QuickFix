@@ -2,7 +2,7 @@
 //  ChangePasswordTableViewController.swift
 //  QuickFix
 //
-//  Created by BP-36-212-03 on 27/12/2025.
+//  Created by Faisal Alsinini on 27/12/2025.
 //
 
 import UIKit
