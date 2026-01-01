@@ -22,43 +22,47 @@ private struct TechnicianRow {
     }
 }
 
-final class AssignTaskVeiwController: UIViewController {
-    
+final class AssignTaskVeiwController: UITableViewController {
 
-    // MARK: - Outlets (connect in storyboard)
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var assignButton: UIButton! // connect if you have it (Assign Task button)
-
-    // MARK: - Input (MUST be set before showing this screen)
-    /// This should be the Firestore docID for the request inside StudentRepairRequests
     var requestDocId: String = ""
 
-    // MARK: - Firebase
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
-    // MARK: - Data
     private var technicians: [TechnicianRow] = []
     private var selectedIndexPath: IndexPath?
 
+    private let assignButton = UIButton(type: .system)
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Safety: avoid crashing if not connected
-        tableView.dataSource = self
-        tableView.delegate = self
-
-        assignButton?.isEnabled = false
-
+        setupAssignButton()
         startListeningTechnicians()
     }
 
     deinit { listener?.remove() }
 
+    // MARK: - Bottom Button
+    private func setupAssignButton() {
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 90))
+
+        assignButton.setTitle("Assign Task", for: .normal)
+        assignButton.isEnabled = false
+        assignButton.backgroundColor = .systemBlue
+        assignButton.setTitleColor(.white, for: .normal)
+        assignButton.layer.cornerRadius = 12
+        assignButton.addTarget(self, action: #selector(didTapAssign), for: .touchUpInside)
+
+        assignButton.frame = CGRect(x: 16, y: 20, width: view.frame.width - 32, height: 50)
+        container.addSubview(assignButton)
+
+        tableView.tableFooterView = container
+    }
+
+    // MARK: - Firestore
     private func startListeningTechnicians() {
         listener?.remove()
 
-        // Order by name if you want (requires index sometimes). If it fails, remove order.
         listener = db.collection("technicians")
             .addSnapshotListener { [weak self] snap, err in
                 guard let self else { return }
@@ -68,78 +72,66 @@ final class AssignTaskVeiwController: UIViewController {
                     return
                 }
 
-                let docs = snap?.documents ?? []
-                self.technicians = docs.map { TechnicianRow(doc: $0) }
+                self.technicians = snap?.documents.map {
+                    TechnicianRow(doc: $0)
+                } ?? []
 
-                // reset selection if list changed
                 self.selectedIndexPath = nil
-                self.assignButton?.isEnabled = false
-
+                self.assignButton.isEnabled = false
                 self.tableView.reloadData()
-                print("✅ technicians loaded:", docs.count)
             }
     }
 
-    // MARK: - Actions
-    @IBAction func didTapAssign(_ sender: UIButton) {
-        guard !requestDocId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            showAlert(title: "Error", message: "Missing request id (requestDocId).")
+    // MARK: - Assign
+    @objc private func didTapAssign() {
+        guard !requestDocId.isEmpty else {
+            showAssignedAndGoBack(techName: "")
             return
         }
 
-        guard let selectedIndexPath else {
-            showAlert(title: "Select Technician", message: "Please choose a technician first.")
+
+        guard let indexPath = selectedIndexPath else {
+            showAlert(title: "Select Technician", message: "Please choose a technician.")
             return
         }
 
-        let tech = technicians[selectedIndexPath.row]
+        let tech = technicians[indexPath.row]
 
-        sender.isEnabled = false
+        assignButton.isEnabled = false
         view.isUserInteractionEnabled = false
 
         Task {
             do {
                 try await assign(requestId: requestDocId, technician: tech)
-
                 await MainActor.run {
-                    sender.isEnabled = true
                     self.view.isUserInteractionEnabled = true
-                    self.showAlert(title: "Assigned", message: "Task assigned to \(tech.techName).") {
-                        self.navigationController?.popViewController(animated: true)
-                    }
+                    self.showAssignedAndGoBack(techName: tech.techName)
                 }
             } catch {
                 await MainActor.run {
-                    sender.isEnabled = true
                     self.view.isUserInteractionEnabled = true
+                    self.assignButton.isEnabled = true
                     self.showAlert(title: "Error", message: error.localizedDescription)
                 }
             }
         }
     }
 
-    // MARK: - Firestore Assign Logic
     private func assign(requestId: String, technician: TechnicianRow) async throws {
-
         let requestRef = db.collection("StudentRepairRequests").document(requestId)
         let techRef = db.collection("technicians").document(technician.docId)
-
         let adminUid = Auth.auth().currentUser?.uid ?? "unknown_admin"
 
-        // Transaction: update request + increment technician totalTasks
-        try await db.runTransaction { transaction, errorPointer -> Any? in
-
-            // Update request fields (add these fields even if not existing before)
+        _ = try await db.runTransaction { transaction, _ -> Any? in
             transaction.updateData([
                 "assignedTechnicianId": technician.techId,
                 "assignedTechnicianName": technician.techName,
                 "assignedTechnicianDocId": technician.docId,
                 "assignedAt": Timestamp(date: Date()),
                 "assignedBy": adminUid,
-                "status": "in_progress" // or "assigned" if you prefer
+                "status": "in_progress"
             ], forDocument: requestRef)
 
-            // Increment technician totalTasks by 1
             transaction.updateData([
                 "totalTasks": FieldValue.increment(Int64(1)),
                 "updatedAt": Timestamp(date: Date())
@@ -149,43 +141,52 @@ final class AssignTaskVeiwController: UIViewController {
         }
     }
 
-    // MARK: - Alert helper
-    private func showAlert(title: String, message: String, onOK: (() -> Void)? = nil) {
+    // MARK: - Alerts
+    private func showAssignedAndGoBack(techName: String) {
+        let alert = UIAlertController(
+            title: "Assigned Successfully",
+            message: "The task has been assigned successfully.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.navigationController?.popViewController(animated: true)
+        })
+
+        present(alert, animated: true)
+    }
+
+
+    private func showAlert(title: String, message: String) {
         let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "OK", style: .default) { _ in onOK?() })
+        a.addAction(UIAlertAction(title: "OK", style: .default))
         present(a, animated: true)
     }
 }
 
-// MARK: - UITableViewDataSource / Delegate
-extension AssignTaskVeiwController: UITableViewDataSource, UITableViewDelegate {
+// MARK: - Table
+extension AssignTaskVeiwController {
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         technicians.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-        // ✅ Set this identifier in storyboard cell: "TechCell"
+    override func tableView(_ tableView: UITableView,
+                            cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TechCell", for: indexPath)
 
         let t = technicians[indexPath.row]
         cell.textLabel?.text = t.techName
-        cell.detailTextLabel?.text = "\(t.specialization) • \(t.completedTasks)/\(t.totalTasks) completed"
-
-        // show selection
-        if indexPath == selectedIndexPath {
-            cell.accessoryType = .checkmark
-        } else {
-            cell.accessoryType = .none
-        }
+        cell.detailTextLabel?.text =
+        "\(t.specialization) • \(t.completedTasks)/\(t.totalTasks) completed"
+        cell.accessoryType = indexPath == selectedIndexPath ? .checkmark : .none
 
         return cell
     }
 
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedIndexPath = indexPath
-        assignButton?.isEnabled = true
+        assignButton.isEnabled = true
         tableView.reloadData()
     }
 }

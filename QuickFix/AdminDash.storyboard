@@ -526,7 +526,6 @@
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="assignButton" destination="Mte-cR-QRG" id="TkW-dx-jRx"/>
-                        <outlet property="tableView" destination="AKt-h6-B6j" id="b4l-Ba-K1C"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YCn-OW-YXB" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
