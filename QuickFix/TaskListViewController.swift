@@ -1,10 +1,9 @@
 import UIKit
 import FirebaseFirestore
 
-// MARK: - Custom Cell (same file so you don't need another swift file)
+// MARK: - Storyboard Cell
 final class InfoCell: UITableViewCell {
 
-    // Connect these 6 labels from storyboard
     @IBOutlet weak var titleLeftLabel: UILabel!
     @IBOutlet weak var titleRightLabel: UILabel!
 
@@ -16,24 +15,18 @@ final class InfoCell: UITableViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-
         selectionStyle = .none
 
-        // Fixed left titles
-        titleLeftLabel.text = "Ticket Title:"
+        titleLeftLabel.text = "Problem:"
         submittedLeftLabel.text = "Submitted:"
         statusLeftLabel.text = "Status:"
 
-        // Basic styling (optional)
         titleLeftLabel.textColor = .secondaryLabel
         submittedLeftLabel.textColor = .secondaryLabel
         statusLeftLabel.textColor = .secondaryLabel
 
-        titleRightLabel.textColor = .label
-        submittedRightLabel.textColor = .label
-        statusRightLabel.textColor = .label
-
         titleRightLabel.numberOfLines = 0
+        titleRightLabel.lineBreakMode = .byWordWrapping
     }
 
     override func prepareForReuse() {
@@ -43,110 +36,94 @@ final class InfoCell: UITableViewCell {
         statusRightLabel.text = nil
     }
 
-    func configure(title: String, submitted: String, status: String) {
-        titleRightLabel.text = title
+    func configure(problem: String, submitted: String, status: String) {
+        titleRightLabel.text = problem
         submittedRightLabel.text = submitted
         statusRightLabel.text = status
     }
 }
 
-// MARK: - Task List VC
+// MARK: - Task List (UIViewController + UITableView)
 final class TaskListViewController: UIViewController {
 
-    @IBOutlet private weak var tableView: UITableView!
+    // Connect this outlet to the Table View in storyboard
+    @IBOutlet weak var tableView: UITableView!
 
-    // Firestore
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
-    // Data model
-    struct Ticket {
+    private struct Row {
         let id: String
-        let title: String
+        let problemDescription: String
         let createdAt: Date
         let status: String
-
-        init?(doc: QueryDocumentSnapshot) {
-            let data = doc.data()
-            guard let title = data["title"] as? String else { return nil }
-
-            self.id = doc.documentID
-            self.title = title
-            self.status = (data["status"] as? String) ?? "pending"
-            self.createdAt = (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
-        }
     }
 
-    private var tickets: [Ticket] = []
+    private var rows: [Row] = []
 
-    private lazy var dateFormatter: DateFormatter = {
+    private lazy var df: DateFormatter = {
         let f = DateFormatter()
-        f.dateFormat = "MMM d, yyyy"
+        f.dateFormat = "MMM d, yyyy  h:mm a"
         return f
     }()
 
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavBar()
+
+        print("✅ TaskList UIViewController viewDidLoad")
+
+        title = "Task List"
         setupTable()
         startListening()
     }
 
     deinit { listener?.remove() }
 
-    // MARK: - UI
-    private func setupNavBar() {
-        title = "Task List"
-
-        let barColor = UIColor(red: 44/255, green: 70/255, blue: 92/255, alpha: 1)
-        navigationController?.navigationBar.isTranslucent = false
-
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = barColor
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
-        ]
-
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white
-    }
-
     private func setupTable() {
-        view.backgroundColor = .systemGroupedBackground
+        if tableView == nil {
+            print("❌ tableView outlet NOT connected")
+            return
+        }
 
         tableView.dataSource = self
         tableView.delegate = self
 
-        tableView.backgroundColor = .clear
-        tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 20, right: 0)
-
-        // Auto height (best with custom cell + stack views)
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 140
+        tableView.estimatedRowHeight = 150
+
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = .clear
+        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 20, right: 0)
     }
 
-    // MARK: - Firestore
     private func startListening() {
         listener?.remove()
 
-        // Admin: list ALL student repair requests
+        print("✅ startListening called")
+
         listener = db.collection("StudentRepairRequests")
-            .order(by: "createdAt", descending: true)
-            .addSnapshotListener { [weak self] snapshot, error in
+            .addSnapshotListener { [weak self] snap, err in
                 guard let self else { return }
 
-                if let error {
-                    print("❌ TaskList listen error:", error)
+                print("✅ Listener fired")
+
+                if let err = err {
+                    print("❌ Firestore error:", err.localizedDescription)
                     return
                 }
 
-                let docs = snapshot?.documents ?? []
-                self.tickets = docs.compactMap { Ticket(doc: $0) }
+                let docs = snap?.documents ?? []
+                print("✅ StudentRepairRequests docs:", docs.count)
+
+                self.rows = docs.map { doc in
+                    let d = doc.data()
+                    return Row(
+                        id: doc.documentID,
+                        problemDescription: (d["problemDescription"] as? String) ?? "(no description)",
+                        createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(timeIntervalSince1970: 0),
+                        status: (d["status"] as? String) ?? "pending"
+                    )
+                }.sorted { $0.createdAt > $1.createdAt }
 
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
@@ -154,22 +131,12 @@ final class TaskListViewController: UIViewController {
             }
     }
 
-    private func prettyStatus(_ status: String) -> String {
-        switch status {
+    private func prettyStatus(_ s: String) -> String {
+        switch s.lowercased() {
         case "pending": return "Pending"
         case "in_progress": return "In Progress"
         case "completed": return "Completed"
-        default: return status
-        }
-    }
-
-    // MARK: - Segue to details (PASS requestId)
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ShowTicketDetails",
-           let vc = segue.destination as? TicketDetailsViewController,
-           let indexPath = sender as? IndexPath {
-
-            vc.requestId = tickets[indexPath.row].id
+        default: return s
         }
     }
 }
@@ -178,7 +145,7 @@ final class TaskListViewController: UIViewController {
 extension TaskListViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tickets.count
+        rows.count
     }
 
     func tableView(_ tableView: UITableView,
@@ -189,13 +156,13 @@ extension TaskListViewController: UITableViewDataSource {
             return UITableViewCell()
         }
 
-        let t = tickets[indexPath.row]
-        let submittedText = dateFormatter.string(from: t.createdAt)
+        let r = rows[indexPath.row]
+        let submitted = (r.createdAt.timeIntervalSince1970 == 0) ? "-" : df.string(from: r.createdAt)
 
         cell.configure(
-            title: t.title,
-            submitted: submittedText,
-            status: prettyStatus(t.status)
+            problem: r.problemDescription,
+            submitted: submitted,
+            status: prettyStatus(r.status)
         )
 
         return cell
@@ -207,15 +174,11 @@ extension TaskListViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-
-        // Tap opens Ticket Details
-        performSegue(withIdentifier: "ShowTicketDetails", sender: indexPath)
+        // If you have details segue, uncomment:
+        // performSegue(withIdentifier: "showTicketDetails", sender: indexPath)
     }
 
-    // spacing between cells
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        12
-    }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { 12 }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let v = UIView()
