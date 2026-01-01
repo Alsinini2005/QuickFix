@@ -43,10 +43,9 @@ final class InfoCell: UITableViewCell {
     }
 }
 
-// MARK: - Task List (UIViewController + UITableView)
+// MARK: - Task List
 final class TaskListViewController: UIViewController {
 
-    // Connect this outlet to the Table View in storyboard
     @IBOutlet weak var tableView: UITableView!
 
     private let db = Firestore.firestore()
@@ -69,16 +68,12 @@ final class TaskListViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("✅ TaskList UIViewController viewDidLoad")
-
         title = "Task List"
         setupTable()
         startListening()
     }
 
-    deinit {
-        listener?.remove()
-    }
+    deinit { listener?.remove() }
 
     private func setupTable() {
         if tableView == nil {
@@ -99,13 +94,11 @@ final class TaskListViewController: UIViewController {
 
     private func startListening() {
         listener?.remove()
-        print("✅ startListening called")
 
         listener = db.collection("StudentRepairRequests")
+            .order(by: "createdAt", descending: true)
             .addSnapshotListener { [weak self] snap, err in
                 guard let self else { return }
-
-                print("✅ Listener fired")
 
                 if let err = err {
                     print("❌ Firestore error:", err.localizedDescription)
@@ -113,7 +106,6 @@ final class TaskListViewController: UIViewController {
                 }
 
                 let docs = snap?.documents ?? []
-                print("✅ StudentRepairRequests docs:", docs.count)
 
                 self.rows = docs.map { doc in
                     let d = doc.data()
@@ -123,7 +115,7 @@ final class TaskListViewController: UIViewController {
                         createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(timeIntervalSince1970: 0),
                         status: (d["status"] as? String) ?? "pending"
                     )
-                }.sorted { $0.createdAt > $1.createdAt }
+                }
 
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
@@ -134,10 +126,17 @@ final class TaskListViewController: UIViewController {
     private func prettyStatus(_ s: String) -> String {
         switch s.lowercased() {
         case "pending": return "Pending"
-        case "in_progress": return "In Progress"
+        case "in_progress", "in progress": return "In Progress"
         case "completed": return "Completed"
         default: return s
         }
+    }
+
+    // ✅ Option A: storyboard segue (cell -> details). We only pass requestId here.
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard let dest = segue.destination as? TicketDetailsViewController else { return }
+        guard let indexPath = tableView.indexPathForSelectedRow else { return }
+        dest.requestId = rows[indexPath.row].id
     }
 }
 
@@ -176,10 +175,9 @@ extension TaskListViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension TaskListViewController: UITableViewDelegate {
 
+    // ✅ Option A: do NOT call performSegue here. storyboard handles navigation.
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        // If you have details segue, uncomment:
-        // performSegue(withIdentifier: "showTicketDetails", sender: indexPath)
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {

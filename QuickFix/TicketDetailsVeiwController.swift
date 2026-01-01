@@ -26,6 +26,9 @@ final class TicketDetailsViewController: UIViewController {
     @IBOutlet private weak var statusTitle: UILabel!
     @IBOutlet private weak var createdTitle: UILabel!
 
+    // ✅ ADDED (you already have classroom in Firestore screenshot; no renaming, just adding a missing outlet)
+    @IBOutlet private weak var classroomLabel: UILabel?
+
     // MARK: - Firebase
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
@@ -78,6 +81,8 @@ final class TicketDetailsViewController: UIViewController {
     private func startListening(docId: String) {
         listener?.remove()
 
+        // ✅ IMPORTANT: Make sure this matches EXACTLY your Firestore collection name.
+        // From your screenshot it is: StudentRepairRequests (with s)
         listener = db.collection("StudentRepairRequests")
             .document(docId)
             .addSnapshotListener { [weak self] snap, error in
@@ -88,7 +93,12 @@ final class TicketDetailsViewController: UIViewController {
                     return
                 }
 
-                guard let data = snap?.data() else {
+                guard let snap, snap.exists else {
+                    print("❌ Document not found:", docId)
+                    return
+                }
+
+                guard let data = snap.data() else {
                     print("❌ No data for document:", docId)
                     return
                 }
@@ -108,6 +118,8 @@ final class TicketDetailsViewController: UIViewController {
             buildingText = "\(b)"
         } else if let b = data["building"] as? String {
             buildingText = b
+        } else if let b = data["building"] as? Double {
+            buildingText = "\(Int(b))"
         } else {
             buildingText = "-"
         }
@@ -117,8 +129,10 @@ final class TicketDetailsViewController: UIViewController {
             classroomText = "\(c)"
         } else if let c = data["classroom"] as? String {
             classroomText = c
+        } else if let c = data["classroom"] as? Double {
+            classroomText = "\(Int(c))"
         } else {
-            classroomText = ""
+            classroomText = "-"
         }
 
         let createdText: String
@@ -131,11 +145,12 @@ final class TicketDetailsViewController: UIViewController {
         // Fill labels
         ticketNameLabel.text = title
         campusLabel.text = campus
-        buildingLabel.text = classroomText.isEmpty
-            ? buildingText
-            : "\(buildingText) | Room \(classroomText)"
+        buildingLabel.text = buildingText
         statusLabel.text = prettyStatus(statusRaw)
         createdLabel.text = createdText
+
+        // ✅ ADDED: show classroom if you have a place for it (optional outlet)
+        classroomLabel?.text = classroomText
 
         // Image
         let imageUrl = (data["imageUrl"] as? String) ?? ""
@@ -143,9 +158,9 @@ final class TicketDetailsViewController: UIViewController {
     }
 
     private func prettyStatus(_ status: String) -> String {
-        switch status {
+        switch status.lowercased() {
         case "pending": return "Pending"
-        case "in_progress": return "In Progress"
+        case "in_progress", "in progress": return "In Progress"
         case "completed": return "Completed"
         default: return status
         }
@@ -154,7 +169,7 @@ final class TicketDetailsViewController: UIViewController {
     // MARK: - Image
     private func loadImage(urlString: String) {
         imageTask?.cancel()
-        ticketImageView.image = nil
+        ticketImageView.image = UIImage(systemName: "photo")
 
         guard !urlString.isEmpty, let url = URL(string: urlString) else { return }
 
