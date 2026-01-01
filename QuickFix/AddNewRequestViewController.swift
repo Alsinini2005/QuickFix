@@ -5,10 +5,10 @@ import FirebaseFirestore
 final class AddNewRequestViewController: UIViewController {
 
     // MARK: - Outlets (connect in storyboard)
-    @IBOutlet weak var campusTextField: UIButton!
-    @IBOutlet weak var buildingTextField: UITextField!
-    @IBOutlet weak var classroomTextField: UITextField!
-    @IBOutlet weak var descriptionTextField: UITextField!
+    @IBOutlet weak var campusTextField: UIButton?
+    @IBOutlet weak var buildingTextField: UITextField?
+    @IBOutlet weak var classroomTextField: UITextField?
+    @IBOutlet weak var descriptionTextField: UITextField?
     @IBOutlet weak var previewImageView: UIImageView?
 
     // MARK: - State
@@ -26,21 +26,22 @@ final class AddNewRequestViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        assertOutletsConnected()
         setupUI()
+        debugOutlets()
     }
 
-    private func assertOutletsConnected() {
-        precondition(campusTextField != nil, "❌ campusTextField not connected")
-        precondition(buildingTextField != nil, "❌ buildingTextField not connected")
-        precondition(classroomTextField != nil, "❌ classroomTextField not connected")
-        precondition(descriptionTextField != nil, "❌ descriptionTextField not connected")
+    private func debugOutlets() {
+        print("DEBUG campusTextField:", campusTextField as Any)
+        print("DEBUG buildingTextField:", buildingTextField as Any)
+        print("DEBUG classroomTextField:", classroomTextField as Any)
+        print("DEBUG descriptionTextField:", descriptionTextField as Any)
+        print("DEBUG previewImageView:", previewImageView as Any)
     }
 
     // MARK: - UI
     private func setupUI() {
-        let t = (campusTextField.title(for: .normal) ?? "").trimmingCharacters(in: .whitespaces)
-        if t.isEmpty { campusTextField.setTitle("Select Campus", for: .normal) }
+        let t = (campusTextField?.title(for: .normal) ?? "").trimmingCharacters(in: .whitespaces)
+        if t.isEmpty { campusTextField?.setTitle("Select Campus", for: .normal) }
 
         previewImageView?.contentMode = .scaleAspectFill
         previewImageView?.layer.cornerRadius = 12
@@ -55,11 +56,17 @@ final class AddNewRequestViewController: UIViewController {
 
     // MARK: - Campus picker
     @IBAction func campusButtonTapped(_ sender: UIButton) {
+        guard let campusBtn = campusTextField else {
+            print("❌ campusTextField is NIL (reconnect outlet to the Select Campus button)")
+            debugOutlets()
+            return
+        }
+
         let sheet = UIAlertController(title: "Select Campus", message: nil, preferredStyle: .actionSheet)
 
         campusOptions.forEach { campus in
-            sheet.addAction(UIAlertAction(title: campus, style: .default) { [weak self] _ in
-                self?.campusTextField.setTitle(campus, for: .normal)
+            sheet.addAction(UIAlertAction(title: campus, style: .default) { _ in
+                campusBtn.setTitle(campus, for: .normal)
             })
         }
 
@@ -93,19 +100,25 @@ final class AddNewRequestViewController: UIViewController {
 
         Task {
             do {
-                let campus = campusTextField.title(for: .normal) ?? ""
-                let buildingText = buildingTextField.text ?? ""
-                let classroomText = classroomTextField.text ?? ""
-                let desc = descriptionTextField.text ?? ""
+                guard let campusBtn = campusTextField,
+                      let buildingTF = buildingTextField,
+                      let classroomTF = classroomTextField,
+                      let descTF = descriptionTextField else {
+                    throw NSError(domain: "Outlets", code: 0,
+                                  userInfo: [NSLocalizedDescriptionKey: "One or more fields are not connected in storyboard."])
+                }
+
+                let campus = campusBtn.title(for: .normal) ?? ""
+                let buildingText = buildingTF.text ?? ""
+                let classroomText = classroomTF.text ?? ""
+                let desc = descTF.text ?? ""
 
                 let building = try parseInt(buildingText, name: "Building")
                 let classroom = try parseInt(classroomText, name: "Classroom")
                 try validate(campus: campus, building: building, classroom: classroom, desc: desc)
 
-                // ✅ Upload image (if selected)
                 let imageUrl = try await uploadToCloudinaryIfConfigured(image: pickedImage)
 
-                // ✅ Save request (no userId field)
                 try await saveToFirestore(
                     campus: campus,
                     building: building,
