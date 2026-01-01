@@ -15,7 +15,6 @@ final class NotificationsViewController: UITableViewController {
     private var filter: FilterMode = .all
 
 
-    // لاحقًا الداشبورد يمررها حسب نوع اليوزر
     var audience: NotificationAudience = .user
 
     private var allItems: [AppNotification] = []
@@ -69,7 +68,6 @@ final class NotificationsViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // أي إشعار لهذي الفئة يعتبر "Seen" بمجرد فتح المركز
         store.markAllSeen(for: audience)
 
         reloadData()
@@ -116,14 +114,12 @@ final class NotificationsViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "NotificationCell", for: indexPath)
         let n = items[indexPath.row]
 
-        // left bar
         if let bar = cell.viewWithTag(401) as? UIView {
             let isSystemAlert = (n.category == .systemAlert || n.category == .overdueAlert)
             bar.backgroundColor = isSystemAlert ? .systemRed : .systemBlue
             bar.layer.cornerRadius = 1.5
         }
 
-        // category label
         if let typeLabel = cell.viewWithTag(402) as? UILabel {
             typeLabel.text = {
                 switch n.category {
@@ -137,25 +133,21 @@ final class NotificationsViewController: UITableViewController {
             typeLabel.textColor = isSystemAlert ? .systemRed : .label
         }
 
-        // title
         if let titleLabel = cell.viewWithTag(403) as? UILabel {
             titleLabel.text = n.title
             titleLabel.numberOfLines = 0
         }
 
-        // time (مثل “5 minutes ago”)
         if let timeLabel = cell.viewWithTag(404) as? UILabel {
             timeLabel.text = relativeFormatter.localizedString(for: n.createdAt, relativeTo: Date())
         }
 
-        // Show button
         if let btn = cell.viewWithTag(405) as? UIButton {
             btn.accessibilityIdentifier = n.id.uuidString
             btn.removeTarget(nil, action: nil, for: .touchUpInside)
             btn.addTarget(self, action: #selector(showTapped(_:)), for: .touchUpInside)
         }
 
-        // Unread effect
         cell.contentView.alpha = n.isRead ? 0.6 : 1.0
 
         return cell
@@ -166,11 +158,9 @@ final class NotificationsViewController: UITableViewController {
               let id = UUID(uuidString: idStr),
               let n = allItems.first(where: { $0.id == id }) else { return }
 
-        // اعتبره Read
         store.markRead(id: id)
         reloadData()
 
-        // لاحقًا: افتح Ticket Details باستخدام n.ticketId
         print("Show notification:", n.title)
     }
 }

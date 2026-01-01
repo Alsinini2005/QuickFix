@@ -2,7 +2,7 @@
 //  SettingsTableViewController.swift
 //  QuickFix
 //
-//  Created by BP-36-212-03 on 22/12/2025.
+//  Created by Faisal Alsinini on 22/12/2025.
 //
 
 
@@ -62,7 +62,7 @@ final class SettingsTableViewController: UITableViewController {
     private var isAdmin: Bool { currentUserType == "Admin" }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if section == 1 && !isAdmin { return nil }   // Preference section
+        if section == 1 && !isAdmin { return nil }
         return super.tableView(tableView, titleForHeaderInSection: section)
     }
 

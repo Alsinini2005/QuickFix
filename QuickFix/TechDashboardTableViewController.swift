@@ -4,6 +4,7 @@
 //
 //  Created by Faisal Alsinini on 28/12/2025.
 //
+
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
@@ -67,9 +68,9 @@ final class TechDashboardTableViewController: UITableViewController {
 
         batch.commit { [weak self] error in
             if let error = error {
-                print("❌ Seed failed:", error)
+                print("Seed failed:", error)
             } else {
-                print("✅ Seeded 20 tasks (12 completed).")
+                print("Seeded 20 tasks (12 completed).")
                 self?.fetchDashboardDataForTechnician()
                 self?.fetchWeeklyCompletedLast30Days()
             }
@@ -179,7 +180,7 @@ final class TechDashboardTableViewController: UITableViewController {
                     guard completedAt >= fromDate && completedAt <= now else { continue }
 
                     let daysAgoRaw = cal.dateComponents([.day], from: completedAt, to: now).day ?? 0
-                    let daysAgo = max(0, daysAgoRaw)   // protect future timestamps
+                    let daysAgo = max(0, daysAgoRaw)
                     guard daysAgo <= 30 else { continue }
 
                     let weekIndex = min(3, max(0, (30 - daysAgo) / 7))

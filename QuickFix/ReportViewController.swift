@@ -9,9 +9,9 @@ final class ReportViewController: UIViewController {
     private var listener: ListenerRegistration?
 
     struct ReportSummary {
-        let docId: String          // Firestore document id (still useful)
-        let reportId: Int          // ✅ numeric id
-        let type: String           // "monthly" / "yearly"
+        let docId: String         
+        let reportId: Int
+        let type: String
         let createdAt: Date
         let periodStart: Date
         let periodEnd: Date

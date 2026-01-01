@@ -1,11 +1,3 @@
-//
-//  DashboardViewController.swift
-//  QuickFix
-//
-//  Dashboard page
-//  - Keeps your storyboard UI as-is
-//  - ONLY backend here: load profile image from Firestore users/{uid}.profileImageUrl
-//
 
 import UIKit
 import FirebaseAuth
@@ -17,7 +9,6 @@ final class StudentDashViewController: UIViewController {
 
     @IBOutlet private weak var welcomeLabel: UILabel!
     @IBOutlet private weak var quickActionsLabel: UILabel!
-    @IBOutlet private weak var createRequestButton: UIButton!
     @IBOutlet private weak var viewRecentButton: UIButton!
     @IBOutlet weak var profileImageView: UIImageView!
 
