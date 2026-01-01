@@ -7,6 +7,140 @@ import UIKit
 import FirebaseFirestore
 
 final class AdminDashboardViewController: UIViewController {
+   
+   
+    
+    func seedStudentRepairRequests() {
+        let db = Firestore.firestore()
+        let col = db.collection("StudentRepairRequests")
+
+        let items: [(String, [String: Any])] = [
+            ("Request 2", [
+                "title": "Wifi not working",
+                "problemDescription": "Wifi not working",
+                "campus": "Campus A",
+                "building": 34,
+                "classroom": 12,
+                "status": "pending",
+                "userId": "u4y8w4",
+                "createdAt": Timestamp(date: Date())
+            ]),
+            ("Request 3", [
+                "title": "AC broken",
+                "problemDescription": "Air conditioner not cooling",
+                "campus": "Campus B",
+                "building": 21,
+                "classroom": 5,
+                "status": "in_progress",
+                "userId": "student_002",
+                "createdAt": Timestamp(date: Date())
+            ]),
+            ("Request 4", [
+                "title": "Projector issue",
+                "problemDescription": "Projector not turning on",
+                "campus": "Campus A",
+                "building": 10,
+                "classroom": 3,
+                "status": "completed",
+                "userId": "student_003",
+                "createdAt": Timestamp(date: Date())
+            ])
+        ]
+
+        items.forEach { docId, data in
+            col.document(docId).setData(data) { err in
+                if let err = err { print("❌ StudentRepairRequests/\(docId):", err) }
+                else { print("✅ StudentRepairRequests/\(docId) added") }
+            }
+        }
+    }
+
+    
+    func seedMoreTaskAssignments() {
+        let db = Firestore.firestore()
+        let col = db.collection("taskAssignments")
+
+        let items: [(String, [String: Any])] = [
+            ("Assign_1", [
+                "technicianName": "ahmed ali",
+                "requestId": "Request 2",
+                "status": "pending",
+                "assignedAt": Timestamp(date: Date())
+            ]),
+            ("Assign_2", [
+                "technicianName": "sara khaled",
+                "requestId": "Request 3",
+                "status": "in_progress",
+                "assignedAt": Timestamp(date: Date())
+            ]),
+            ("Assign_3", [
+                "technicianName": "mohammed ali",
+                "requestId": "Request 4",
+                "status": "completed",
+                "assignedAt": Timestamp(date: Date())
+            ])
+        ]
+
+        items.forEach { docId, data in
+            col.document(docId).setData(data) { err in
+                if let err = err { print("❌ taskAssignments/\(docId):", err) }
+                else { print("✅ taskAssignments/\(docId) added") }
+            }
+        }
+    }
+
+    func seedMoreTechnicians() {
+        let db = Firestore.firestore()
+        let col = db.collection("technicians")
+
+        let items: [(String, [String: Any])] = [
+            ("tech_001", [
+                "techName": "ahmed",
+                "specialization": "electrical",
+                "isActive": true,
+                "completedTasks": 12,
+                "totalTasks": 20
+            ]),
+            ("tech_002", [
+                "techName": "sara",
+                "specialization": "hardware",
+                "isActive": true,
+                "completedTasks": 7,
+                "totalTasks": 15
+            ]),
+            ("tech_003", [
+                "techName": "khaled",
+                "specialization": "networking",
+                "isActive": false,
+                "completedTasks": 30,
+                "totalTasks": 40
+            ])
+        ]
+
+        items.forEach { docId, data in
+            col.document(docId).setData(data) { err in
+                if let err = err { print("❌ technicians/\(docId):", err) }
+                else { print("✅ technicians/\(docId) added") }
+            }
+        }
+    }
+
+
+
+    private func seedAllOnce() {
+        seedStudentRepairRequests()
+        seedMoreTaskAssignments()
+        seedMoreTechnicians()
+
+      
+    }
+
+
+
+ 
+
+
+
 
     @IBOutlet weak var techOfWeekRankLabel: UILabel!
     @IBOutlet weak var techOfWeekSubtitleLabel: UILabel!
@@ -31,8 +165,17 @@ final class AdminDashboardViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        seedAllOnce()   // run seeding safely one time
+        UserDefaults.standard.removeObject(forKey: "didSeedDemoData") // TEMP
+            seedAllOnce()
 
-        title = "Admin Dashboard"
+            view.backgroundColor = .systemGroupedBackground
+            donutChartView.segments = []
+            cardViews?.forEach { $0.applyCardStyle() }
+            startDashboardListener()
+
+
+       
         view.backgroundColor = .systemGroupedBackground
 
         let bell = UIBarButtonItem(
