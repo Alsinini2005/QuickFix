@@ -99,7 +99,7 @@
                                                 </menu>
                                                 <state key="normal" title="Select Campus"/>
                                                 <connections>
-                                                    <action selector="campusButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="FcL-5k-mvd"/>
+                                                    <action selector="campusButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="fAv-b9-wKv"/>
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Campus" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LqP-qL-JAp">
@@ -146,7 +146,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="gray" title="Upload"/>
                                                 <connections>
-                                                    <action selector="uploadImageTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="jFu-GD-AeH"/>
+                                                    <action selector="uploadImageTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="MOM-7n-pLA"/>
                                                 </connections>
                                             </button>
                                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="eXO-WI-A9G">
@@ -157,7 +157,7 @@
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="gray" title="Submit"/>
                                                 <connections>
-                                                    <action selector="submitButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="czx-ut-By9"/>
+                                                    <action selector="submitButtonTapped:" destination="alI-2o-yOg" eventType="touchUpInside" id="np4-km-ei8"/>
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Building Number" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WB2-8H-ldW">
@@ -241,11 +241,11 @@
                     <tabBarItem key="tabBarItem" title="Add " selectedImage="plus.app" catalog="system" id="FJs-pr-TsV"/>
                     <navigationItem key="navigationItem" title="Add New Request" id="QsP-mV-Esj"/>
                     <connections>
-                        <outlet property="buildingTextField" destination="n8J-38-FJ4" id="r6l-Dr-mc3"/>
-                        <outlet property="campusTextField" destination="9os-CQ-dhz" id="f1D-jv-0eT"/>
-                        <outlet property="classroomTextField" destination="lqg-UM-hzQ" id="kaL-sU-BEj"/>
-                        <outlet property="descriptionTextField" destination="VyC-i6-BIc" id="3Ca-Jd-EDo"/>
-                        <outlet property="previewImageView" destination="eXO-WI-A9G" id="FXU-og-qS8"/>
+                        <outlet property="buildingTextField" destination="n8J-38-FJ4" id="z85-xu-PQ4"/>
+                        <outlet property="campusButton" destination="9os-CQ-dhz" id="IJq-kH-mTk"/>
+                        <outlet property="classroomTextField" destination="lqg-UM-hzQ" id="ItV-Un-q8w"/>
+                        <outlet property="descriptionTextField" destination="VyC-i6-BIc" id="SPx-pL-5rl"/>
+                        <outlet property="previewImageView" destination="eXO-WI-A9G" id="8QO-A8-gEa"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Y7v-OF-98g" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
