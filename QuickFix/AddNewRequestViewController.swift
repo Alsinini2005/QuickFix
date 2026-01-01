@@ -1,8 +1,3 @@
-//
-//  AddNewRequestViewController.swift
-//  QuickFix
-//
-
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
@@ -10,11 +5,11 @@ import FirebaseFirestore
 final class AddNewRequestViewController: UIViewController {
 
     // MARK: - Outlets (connect in storyboard)
-    @IBOutlet weak var campusTextField: UIButton!          // Button title shows selected campus
+    @IBOutlet weak var campusTextField: UIButton!
     @IBOutlet weak var buildingTextField: UITextField!
     @IBOutlet weak var classroomTextField: UITextField!
-    @IBOutlet weak var descriptionTextField: UITextField! // ✅ BACK TO UITextField
-    @IBOutlet weak var previewImageView: UIImageView?     // optional
+    @IBOutlet weak var descriptionTextField: UITextField!
+    @IBOutlet weak var previewImageView: UIImageView?
 
     // MARK: - State
     private var pickedImage: UIImage?
@@ -22,9 +17,9 @@ final class AddNewRequestViewController: UIViewController {
     // MARK: - Campus options
     private let campusOptions = ["Campus A", "Campus B", "Dilmonia"]
 
-    // MARK: - Cloudinary (OPTIONAL)
-    private let cloudName = "YOUR_CLOUD_NAME"
-    private let uploadPreset = "YOUR_UNSIGNED_PRESET"
+    // MARK: - Cloudinary (UNSIGNED)
+    private let cloudName = "userrequest"
+    private let uploadPreset = "Request"
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
@@ -40,16 +35,12 @@ final class AddNewRequestViewController: UIViewController {
         precondition(buildingTextField != nil, "❌ buildingTextField not connected")
         precondition(classroomTextField != nil, "❌ classroomTextField not connected")
         precondition(descriptionTextField != nil, "❌ descriptionTextField not connected")
-        // previewImageView is optional
     }
 
     // MARK: - UI
     private func setupUI() {
-
-        let title = (campusTextField.title(for: .normal) ?? "").trimmingCharacters(in: .whitespaces)
-        if title.isEmpty {
-            campusTextField.setTitle("Select Campus", for: .normal)
-        }
+        let t = (campusTextField.title(for: .normal) ?? "").trimmingCharacters(in: .whitespaces)
+        if t.isEmpty { campusTextField.setTitle("Select Campus", for: .normal) }
 
         previewImageView?.contentMode = .scaleAspectFill
         previewImageView?.layer.cornerRadius = 12
@@ -60,9 +51,7 @@ final class AddNewRequestViewController: UIViewController {
         view.addGestureRecognizer(tap)
     }
 
-    @objc private func dismissKeyboard() {
-        view.endEditing(true)
-    }
+    @objc private func dismissKeyboard() { view.endEditing(true) }
 
     // MARK: - Campus picker
     @IBAction func campusButtonTapped(_ sender: UIButton) {
@@ -76,13 +65,25 @@ final class AddNewRequestViewController: UIViewController {
 
         sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-        // iPad safe
         if let pop = sheet.popoverPresentationController {
             pop.sourceView = sender
             pop.sourceRect = sender.bounds
         }
 
         present(sheet, animated: true)
+    }
+
+    // MARK: - Image Picker
+    @IBAction func uploadImageTapped(_ sender: UIButton) {
+        presentImagePicker()
+    }
+
+    private func presentImagePicker() {
+        let picker = UIImagePickerController()
+        picker.sourceType = .photoLibrary
+        picker.delegate = self
+        picker.allowsEditing = true
+        present(picker, animated: true)
     }
 
     // MARK: - Submit
@@ -92,11 +93,6 @@ final class AddNewRequestViewController: UIViewController {
 
         Task {
             do {
-                guard let uid = Auth.auth().currentUser?.uid else {
-                    await resetUI(sender, message: "Please login first.")
-                    return
-                }
-
                 let campus = campusTextField.title(for: .normal) ?? ""
                 let buildingText = buildingTextField.text ?? ""
                 let classroomText = classroomTextField.text ?? ""
@@ -104,13 +100,13 @@ final class AddNewRequestViewController: UIViewController {
 
                 let building = try parseInt(buildingText, name: "Building")
                 let classroom = try parseInt(classroomText, name: "Classroom")
-
                 try validate(campus: campus, building: building, classroom: classroom, desc: desc)
 
+                // ✅ Upload image (if selected)
                 let imageUrl = try await uploadToCloudinaryIfConfigured(image: pickedImage)
 
+                // ✅ Save request (no userId field)
                 try await saveToFirestore(
-                    userId: uid,
                     campus: campus,
                     building: building,
                     classroom: classroom,
@@ -144,18 +140,14 @@ final class AddNewRequestViewController: UIViewController {
               !campus.isEmpty,
               building > 0,
               classroom > 0,
-              !desc.trimmingCharacters(in: .whitespaces).isEmpty else {
-            throw NSError(
-                domain: "Validation",
-                code: 0,
-                userInfo: [NSLocalizedDescriptionKey: "Please fill all fields."]
-            )
+              !desc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw NSError(domain: "Validation", code: 0,
+                          userInfo: [NSLocalizedDescriptionKey: "Please fill all fields."])
         }
     }
 
     // MARK: - Firestore
     private func saveToFirestore(
-        userId: String,
         campus: String,
         building: Int,
         classroom: Int,
@@ -163,39 +155,73 @@ final class AddNewRequestViewController: UIViewController {
         imageUrl: String?
     ) async throws {
 
-        let payload: [String: Any] = [
-            "userId": userId,
+        var payload: [String: Any] = [
             "title": desc,
             "campus": campus,
             "building": building,
             "classroom": classroom,
             "problemDescription": desc,
-            "imageUrl": imageUrl as Any,
             "status": "pending",
             "createdAt": Timestamp(date: Date())
         ]
 
+        if let imageUrl, !imageUrl.isEmpty {
+            payload["imageUrl"] = imageUrl
+        }
+
         try await db.collection("StudentRepairRequests").addDocument(data: payload)
     }
 
-    // MARK: - Cloudinary (optional)
+    // MARK: - Cloudinary Upload (UNSIGNED)
     private func uploadToCloudinaryIfConfigured(image: UIImage?) async throws -> String? {
         guard let image else { return nil }
-        if cloudName == "YOUR_CLOUD_NAME" || uploadPreset == "YOUR_UNSIGNED_PRESET" { return nil }
-        return nil // keep disabled safely
-    }
 
-    // MARK: - Image Picker
-    @IBAction func uploadImageTapped(_ sender: UIButton) {
-        presentImagePicker()
-    }
+        guard let jpeg = image.jpegData(compressionQuality: 0.8) else {
+            throw NSError(domain: "Image", code: 0,
+                          userInfo: [NSLocalizedDescriptionKey: "Image encoding failed"])
+        }
 
-    private func presentImagePicker() {
-        let picker = UIImagePickerController()
-        picker.sourceType = .photoLibrary
-        picker.delegate = self
-        picker.allowsEditing = true
-        present(picker, animated: true)
+        let boundary = "Boundary-\(UUID().uuidString)"
+        let url = URL(string: "https://api.cloudinary.com/v1_1/\(cloudName)/image/upload")!
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+
+        func addField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        addField("upload_preset", uploadPreset)
+
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(jpeg)
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+        let (data, resp) = try await URLSession.shared.upload(for: req, from: body)
+
+        guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let raw = String(data: data, encoding: .utf8) ?? ""
+            throw NSError(domain: "Cloudinary", code: 0,
+                          userInfo: [NSLocalizedDescriptionKey: "Cloudinary upload failed. \(raw)"])
+        }
+
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let secureUrl = json?["secure_url"] as? String
+
+        guard let secureUrl, !secureUrl.isEmpty else {
+            throw NSError(domain: "Cloudinary", code: 0,
+                          userInfo: [NSLocalizedDescriptionKey: "Cloudinary did not return secure_url"])
+        }
+
+        return secureUrl
     }
 
     // MARK: - Helpers

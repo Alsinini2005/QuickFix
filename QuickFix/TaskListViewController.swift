@@ -63,13 +63,12 @@ final class TaskListViewController: UIViewController {
 
     private lazy var df: DateFormatter = {
         let f = DateFormatter()
-        f.dateFormat = "MMM d, yyyy  h:mm a"
+        f.dateFormat = "MMM d, yyyy h:mm a"
         return f
     }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         print("✅ TaskList UIViewController viewDidLoad")
 
         title = "Task List"
@@ -77,7 +76,9 @@ final class TaskListViewController: UIViewController {
         startListening()
     }
 
-    deinit { listener?.remove() }
+    deinit {
+        listener?.remove()
+    }
 
     private func setupTable() {
         if tableView == nil {
@@ -98,7 +99,6 @@ final class TaskListViewController: UIViewController {
 
     private func startListening() {
         listener?.remove()
-
         print("✅ startListening called")
 
         listener = db.collection("StudentRepairRequests")
@@ -151,13 +151,17 @@ extension TaskListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "InfoCell",
-                                                       for: indexPath) as? InfoCell else {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: "InfoCell",
+            for: indexPath
+        ) as? InfoCell else {
             return UITableViewCell()
         }
 
         let r = rows[indexPath.row]
-        let submitted = (r.createdAt.timeIntervalSince1970 == 0) ? "-" : df.string(from: r.createdAt)
+        let submitted = (r.createdAt.timeIntervalSince1970 == 0)
+            ? "-"
+            : df.string(from: r.createdAt)
 
         cell.configure(
             problem: r.problemDescription,
@@ -178,7 +182,9 @@ extension TaskListViewController: UITableViewDelegate {
         // performSegue(withIdentifier: "showTicketDetails", sender: indexPath)
     }
 
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { 12 }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        12
+    }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let v = UIView()

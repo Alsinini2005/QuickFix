@@ -1,45 +1,37 @@
 import UIKit
 import FirebaseFirestore
-import FirebaseAuth
 
 final class TicketDetailsViewController: UIViewController {
 
-    // MARK: - MUST be set before opening this screen
-    // Pass Firestore document id of the request
-    var requestId: String!
+    // MARK: - Passed from previous screen
+    var requestId: String?
 
-    // MARK: - Outlets (connect these)
+    // MARK: - Outlets (KEEP THESE)
     @IBOutlet private weak var containerView: UIView!
     @IBOutlet private weak var stackView: UIStackView!
 
     @IBOutlet private weak var imageTitleLabel: UILabel!
     @IBOutlet private weak var ticketImageView: UIImageView!
-
     @IBOutlet private weak var assignButton: UIButton!
 
-    // Value labels (right side)
-    @IBOutlet private weak var ticketIdLabel: UILabel!
     @IBOutlet private weak var ticketNameLabel: UILabel!
     @IBOutlet private weak var campusLabel: UILabel!
     @IBOutlet private weak var buildingLabel: UILabel!
     @IBOutlet private weak var statusLabel: UILabel!
     @IBOutlet private weak var createdLabel: UILabel!
-    @IBOutlet private weak var urgencyLabel: UILabel!
 
-    // Title labels (left side)
-    @IBOutlet private weak var ticketIdTitle: UILabel!
     @IBOutlet private weak var ticketNameTitle: UILabel!
     @IBOutlet private weak var campusTitle: UILabel!
     @IBOutlet private weak var buildingTitle: UILabel!
     @IBOutlet private weak var statusTitle: UILabel!
     @IBOutlet private weak var createdTitle: UILabel!
-    @IBOutlet private weak var urgencyTitle: UILabel!
 
     // MARK: - Firebase
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
+    private var imageTask: URLSessionDataTask?
 
-    private lazy var dateFormatter: DateFormatter = {
+    private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "MMM d, yyyy"
         return f
@@ -47,114 +39,65 @@ final class TicketDetailsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavBar()
-        styleScreen()
+        setupUI()
 
-        // safety
-        if requestId == nil || requestId.isEmpty {
-            print("❌ TicketDetailsViewController: requestId not set")
+        guard let id = requestId, !id.isEmpty else {
+            print("❌ TicketDetails: requestId not set")
             return
         }
 
-        startListeningTicket()
+        startListening(docId: id)
     }
 
-    deinit { listener?.remove() }
+    deinit {
+        listener?.remove()
+        imageTask?.cancel()
+    }
 
-    // MARK: - Navigation Bar
-    private func setupNavBar() {
+    // MARK: - UI
+    private func setupUI() {
         title = "Ticket Details"
 
-        let barColor = UIColor(red: 44/255, green: 70/255, blue: 92/255, alpha: 1)
-
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = barColor
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.white,
-            .font: UIFont.systemFont(ofSize: 18, weight: .semibold)
-        ]
-
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white
-    }
-
-    // MARK: - Styling
-    private func styleScreen() {
         view.backgroundColor = UIColor(red: 245/255, green: 246/255, blue: 248/255, alpha: 1)
 
-        // Card
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 12
         containerView.layer.masksToBounds = true
 
-        // Stack view
         stackView.spacing = 0
-        addSeparators()
-
-        // Left titles
-        let titleLabels = [
-            ticketIdTitle, ticketNameTitle, campusTitle,
-            buildingTitle, statusTitle, urgencyTitle, createdTitle
-        ]
-
-        titleLabels.forEach {
-            $0?.font = .systemFont(ofSize: 13, weight: .semibold)
-            $0?.textColor = UIColor(red: 44/255, green: 70/255, blue: 92/255, alpha: 1)
-        }
-
-        // Right values
-        let valueLabels = [
-            ticketIdLabel, ticketNameLabel, campusLabel,
-            buildingLabel, statusLabel, urgencyLabel, createdLabel
-        ]
-
-        valueLabels.forEach {
-            $0?.font = .systemFont(ofSize: 13)
-            $0?.textColor = .secondaryLabel
-        }
-
-        // Image section
-        imageTitleLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        imageTitleLabel.textColor = .label
 
         ticketImageView.backgroundColor = UIColor(white: 0.95, alpha: 1)
         ticketImageView.layer.cornerRadius = 12
         ticketImageView.layer.masksToBounds = true
         ticketImageView.contentMode = .scaleAspectFill
 
-        // Assign button
-        assignButton.backgroundColor = UIColor(red: 44/255, green: 70/255, blue: 92/255, alpha: 1)
-        assignButton.setTitleColor(.white, for: .normal)
-        assignButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         assignButton.layer.cornerRadius = 10
     }
 
     // MARK: - Firestore
-    private func startListeningTicket() {
+    private func startListening(docId: String) {
         listener?.remove()
 
         listener = db.collection("StudentRepairRequests")
-            .document(requestId)
+            .document(docId)
             .addSnapshotListener { [weak self] snap, error in
                 guard let self else { return }
 
                 if let error {
-                    print("❌ Ticket details listen error:", error.localizedDescription)
+                    print("❌ Firestore error:", error.localizedDescription)
                     return
                 }
 
                 guard let data = snap?.data() else {
-                    print("❌ No ticket data for id:", self.requestId ?? "nil")
+                    print("❌ No data for document:", docId)
                     return
                 }
 
-                self.applyTicketData(data, docId: snap?.documentID ?? (self.requestId ?? "-"))
+                self.applyData(data)
             }
     }
 
-    private func applyTicketData(_ data: [String: Any], docId: String) {
+    private func applyData(_ data: [String: Any]) {
 
         let title = (data["title"] as? String) ?? "-"
         let campus = (data["campus"] as? String) ?? "-"
@@ -169,6 +112,15 @@ final class TicketDetailsViewController: UIViewController {
             buildingText = "-"
         }
 
+        let classroomText: String
+        if let c = data["classroom"] as? Int {
+            classroomText = "\(c)"
+        } else if let c = data["classroom"] as? String {
+            classroomText = c
+        } else {
+            classroomText = ""
+        }
+
         let createdText: String
         if let ts = data["createdAt"] as? Timestamp {
             createdText = dateFormatter.string(from: ts.dateValue())
@@ -176,40 +128,18 @@ final class TicketDetailsViewController: UIViewController {
             createdText = "-"
         }
 
-        // urgency OPTIONAL
-        let urgency = (data["urgency"] as? String) ?? "Normal"
-
-        // classroom OPTIONAL
-        let classroomText: String
-        if let c = data["classroom"] as? Int {
-            classroomText = "\(c)"
-        } else if let c = data["classroom"] as? String {
-            classroomText = c
-        } else {
-            classroomText = "-"
-        }
-
         // Fill labels
-        ticketIdLabel.text = docId
         ticketNameLabel.text = title
         campusLabel.text = campus
-
-        if classroomText != "-" {
-            buildingLabel.text = "\(buildingText)  |  Room \(classroomText)"
-        } else {
-            buildingLabel.text = buildingText
-        }
-
+        buildingLabel.text = classroomText.isEmpty
+            ? buildingText
+            : "\(buildingText) | Room \(classroomText)"
         statusLabel.text = prettyStatus(statusRaw)
         createdLabel.text = createdText
-        urgencyLabel.text = urgency
 
-        // image OPTIONAL (imageUrl)
-        if let urlString = data["imageUrl"] as? String, !urlString.isEmpty {
-            loadImage(from: urlString)
-        } else {
-            ticketImageView.image = nil
-        }
+        // Image
+        let imageUrl = (data["imageUrl"] as? String) ?? ""
+        loadImage(urlString: imageUrl)
     }
 
     private func prettyStatus(_ status: String) -> String {
@@ -221,46 +151,24 @@ final class TicketDetailsViewController: UIViewController {
         }
     }
 
-    private func loadImage(from urlString: String) {
-        guard let url = URL(string: urlString) else { return }
+    // MARK: - Image
+    private func loadImage(urlString: String) {
+        imageTask?.cancel()
+        ticketImageView.image = nil
 
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
-            guard let self, let data, let img = UIImage(data: data) else { return }
-            DispatchQueue.main.async { self.ticketImageView.image = img }
-        }.resume()
-    }
+        guard !urlString.isEmpty, let url = URL(string: urlString) else { return }
 
-    // MARK: - Separators between rows
-    private func addSeparators() {
-        for (index, row) in stackView.arrangedSubviews.enumerated() {
-            guard index != stackView.arrangedSubviews.count - 1 else { continue }
-
-            let separator = UIView()
-            separator.backgroundColor = UIColor.systemGray5
-            separator.translatesAutoresizingMaskIntoConstraints = false
-
-            row.addSubview(separator)
-
-            NSLayoutConstraint.activate([
-                separator.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 16),
-                separator.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -16),
-                separator.bottomAnchor.constraint(equalTo: row.bottomAnchor),
-                separator.heightAnchor.constraint(equalToConstant: 1)
-            ])
+        imageTask = URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            guard let data, let img = UIImage(data: data) else { return }
+            DispatchQueue.main.async {
+                self?.ticketImageView.image = img
+            }
         }
+        imageTask?.resume()
     }
 
-    // MARK: - Assign button
+    // MARK: - Assign
     @IBAction private func didTapAssign(_ sender: UIButton) {
-        // ✅ Move to AssignTask screen
         performSegue(withIdentifier: "showAssignTask", sender: nil)
-    }
-
-    // MARK: - Pass requestId to AssignTask
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showAssignTask",
-           let vc = segue.destination as? AssignTaskVeiwController {
-            vc.requestDocId = self.requestId ?? ""
-        }
     }
 }

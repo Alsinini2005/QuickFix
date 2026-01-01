@@ -10,7 +10,7 @@ final class AdminDashboardViewController: UIViewController {
    
    
     
-    func seedStudentRepairRequests() {
+    /*func seedStudentRepairRequests() {
         let db = Firestore.firestore()
         let col = db.collection("StudentRepairRequests")
 
@@ -140,7 +140,7 @@ final class AdminDashboardViewController: UIViewController {
  
 
 
-
+*/
 
     @IBOutlet weak var techOfWeekRankLabel: UILabel!
     @IBOutlet weak var techOfWeekSubtitleLabel: UILabel!
@@ -165,9 +165,9 @@ final class AdminDashboardViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        seedAllOnce()   // run seeding safely one time
+       // seedAllOnce()   // run seeding safely one time
         UserDefaults.standard.removeObject(forKey: "didSeedDemoData") // TEMP
-            seedAllOnce()
+         //   seedAllOnce()
 
             view.backgroundColor = .systemGroupedBackground
             donutChartView.segments = []

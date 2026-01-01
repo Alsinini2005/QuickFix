@@ -198,6 +198,7 @@
                         <viewLayoutGuide key="safeArea" id="Och-E8-mvA"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
+                    <tabBarItem key="tabBarItem" title="Task List" image="list.bullet.clipboard.fill" catalog="system" selectedImage="list.bullet.clipboard.fill" id="2c8-Kt-UIf"/>
                     <navigationItem key="navigationItem" title="Task List" id="v3B-zo-huM"/>
                     <connections>
                         <outlet property="tableView" destination="Sy1-VR-YTa" id="p5w-S8-dFG"/>
@@ -367,6 +368,7 @@
                                             <constraint firstAttribute="trailing" secondItem="hzw-dR-JHA" secondAttribute="trailing" id="8UH-BH-JZy"/>
                                             <constraint firstItem="rQm-WX-W2U" firstAttribute="leading" secondItem="SA5-fE-hxx" secondAttribute="leading" id="9Ns-bU-bjm"/>
                                             <constraint firstItem="rQm-WX-W2U" firstAttribute="top" secondItem="SA5-fE-hxx" secondAttribute="top" id="BdN-eU-uXq"/>
+                                            <constraint firstAttribute="bottom" secondItem="3ci-Be-VzZ" secondAttribute="bottom" id="CQD-BS-8gP"/>
                                             <constraint firstAttribute="trailing" secondItem="cOi-kJ-GrV" secondAttribute="trailing" id="CXL-I8-NAg"/>
                                             <constraint firstAttribute="trailing" secondItem="3ci-Be-VzZ" secondAttribute="trailing" id="DlV-Pz-pMY"/>
                                             <constraint firstItem="hzw-dR-JHA" firstAttribute="top" secondItem="rQm-WX-W2U" secondAttribute="bottom" id="Dlh-1v-nrb"/>
@@ -388,6 +390,7 @@
                                 </subviews>
                                 <color key="backgroundColor" red="0.89803922179999995" green="0.89803922179999995" blue="0.91372549530000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <constraints>
+                                    <constraint firstAttribute="bottom" secondItem="SA5-fE-hxx" secondAttribute="bottom" id="9P5-lf-EgS"/>
                                     <constraint firstItem="SA5-fE-hxx" firstAttribute="top" secondItem="ZFY-38-xRl" secondAttribute="top" id="KBC-Qh-oiq"/>
                                     <constraint firstAttribute="trailing" secondItem="SA5-fE-hxx" secondAttribute="trailing" id="NeF-Ih-m9O"/>
                                     <constraint firstItem="SA5-fE-hxx" firstAttribute="leading" secondItem="ZFY-38-xRl" secondAttribute="leading" id="UDy-Yq-Zl9"/>
@@ -424,7 +427,7 @@
                                     <constraint firstItem="EjL-Np-Az1" firstAttribute="top" secondItem="kbD-bM-Zwd" secondAttribute="bottom" constant="23.666666666666686" id="JPH-0L-Q4E"/>
                                     <constraint firstItem="oEl-nY-bjv" firstAttribute="leading" secondItem="Dfo-NL-acv" secondAttribute="leading" constant="24" id="ZGN-vY-FHc"/>
                                     <constraint firstItem="EjL-Np-Az1" firstAttribute="leading" secondItem="Dfo-NL-acv" secondAttribute="leading" constant="28" id="eou-XV-fKc"/>
-                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="oEl-nY-bjv" secondAttribute="trailing" symbolic="YES" id="fwS-kj-Ezy"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="oEl-nY-bjv" secondAttribute="trailing" constant="20" symbolic="YES" id="fwS-kj-Ezy"/>
                                     <constraint firstItem="EjL-Np-Az1" firstAttribute="centerX" secondItem="kbD-bM-Zwd" secondAttribute="centerX" id="hC1-uP-T4h"/>
                                     <constraint firstAttribute="trailing" secondItem="kbD-bM-Zwd" secondAttribute="trailing" constant="8" id="o3L-uF-yp2"/>
                                     <constraint firstItem="kbD-bM-Zwd" firstAttribute="top" secondItem="oEl-nY-bjv" secondAttribute="bottom" constant="18" id="rqK-Xl-zn2"/>
@@ -446,21 +449,21 @@
                     </view>
                     <navigationItem key="navigationItem" title="Ticket Details" id="1M1-5d-tbB"/>
                     <connections>
-                        <outlet property="assignButton" destination="EjL-Np-Az1" id="ekN-MW-j7Q"/>
-                        <outlet property="buildingLabel" destination="wEu-0y-A3h" id="Fj8-96-rmM"/>
-                        <outlet property="buildingTitle" destination="RzK-id-zct" id="GGn-G6-FFN"/>
-                        <outlet property="campusLabel" destination="Tke-QV-Kcd" id="hKw-hv-Lui"/>
-                        <outlet property="campusTitle" destination="Tke-QV-Kcd" id="TD0-PR-LQX"/>
-                        <outlet property="containerView" destination="ZFY-38-xRl" id="5OA-5L-jVB"/>
-                        <outlet property="createdLabel" destination="Lwc-jb-GBC" id="tRd-2q-NHp"/>
-                        <outlet property="createdTitle" destination="CS1-Jj-QzZ" id="Dwu-CF-jmY"/>
-                        <outlet property="imageTitleLabel" destination="oEl-nY-bjv" id="lZ8-10-He3"/>
-                        <outlet property="stackView" destination="SA5-fE-hxx" id="WJJ-87-DEc"/>
-                        <outlet property="statusLabel" destination="wcx-XM-m1a" id="jvs-9U-8FW"/>
-                        <outlet property="statusTitle" destination="V6O-1R-XgE" id="EzM-Cf-JVj"/>
-                        <outlet property="ticketImageView" destination="kbD-bM-Zwd" id="5lE-sc-gBv"/>
-                        <outlet property="ticketNameLabel" destination="DkR-Bc-zmw" id="Thf-P3-HjM"/>
-                        <outlet property="ticketNameTitle" destination="DkR-Bc-zmw" id="ch3-Nw-iN2"/>
+                        <outlet property="assignButton" destination="EjL-Np-Az1" id="fTZ-SX-rby"/>
+                        <outlet property="buildingLabel" destination="RzK-id-zct" id="6T9-o0-9sY"/>
+                        <outlet property="buildingTitle" destination="wEu-0y-A3h" id="hY2-Uy-xep"/>
+                        <outlet property="campusLabel" destination="Tke-QV-Kcd" id="vbC-Qr-TqI"/>
+                        <outlet property="campusTitle" destination="lHq-uA-zyG" id="08B-vX-dEz"/>
+                        <outlet property="containerView" destination="ZFY-38-xRl" id="aof-DI-fIO"/>
+                        <outlet property="createdLabel" destination="CS1-Jj-QzZ" id="vZz-Hg-u6u"/>
+                        <outlet property="createdTitle" destination="Lwc-jb-GBC" id="bfb-ZW-Bah"/>
+                        <outlet property="imageTitleLabel" destination="oEl-nY-bjv" id="ObJ-we-1gz"/>
+                        <outlet property="stackView" destination="SA5-fE-hxx" id="x5I-dv-pkx"/>
+                        <outlet property="statusLabel" destination="V6O-1R-XgE" id="1kg-gG-JWS"/>
+                        <outlet property="statusTitle" destination="wcx-XM-m1a" id="HdP-4o-2fm"/>
+                        <outlet property="ticketImageView" destination="kbD-bM-Zwd" id="vEB-Zw-O6n"/>
+                        <outlet property="ticketNameLabel" destination="DkR-Bc-zmw" id="SgS-f0-9MQ"/>
+                        <outlet property="ticketNameTitle" destination="vtq-dn-kKo" id="hJE-AI-eo2"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Cr4-tt-Ddj" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
