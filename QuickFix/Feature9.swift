@@ -8,6 +8,7 @@
 import UIKit
 
 struct Technician {
+    var image : String
     var userID : String
     var name : String
     var email : String
@@ -17,13 +18,47 @@ struct Technician {
 }
 
 var arrTechnicians = [
-    Technician(userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
-    Technician(userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
-    Technician(userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
-    Technician(userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
-    Technician(userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
+    Technician(image: "person.fill", userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
+    Technician(image: "imgProfilePhoto", userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
+    Technician(image: "imgProfilePhoto", userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
+    Technician(image: "imgProfilePhoto", userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
+    Technician(image: "imgProfilePhoto", userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
 
 ]
+
+// Helper to get Documents directory URL
+func documentsDirectory() -> URL {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+}
+
+// Save UIImage to Documents and return filename
+func saveImageToDocuments(_ image: UIImage, for userID: String) -> String {
+    let filename = "custom_\(userID).png"
+    let fileURL = documentsDirectory().appendingPathComponent(filename)
+    
+    if let data = image.pngData() {
+        try? data.write(to: fileURL)
+    }
+    return filename
+}
+
+// Load image from either asset catalog or Documents
+func loadImage(named imageName: String) -> UIImage? {
+    // First try bundled assets
+    if let assetImage = UIImage(named: imageName) {
+        return assetImage
+    }
+    
+    // Then try Documents directory
+    let fileURL = documentsDirectory().appendingPathComponent(imageName)
+    if let image = UIImage(contentsOfFile: fileURL.path) {
+        return image
+    }
+    
+    // Fallback
+    return UIImage(systemName: "person.crop.circle.fill")
+}
+
 extension UITableView {
 
     func applySoftBorder(
@@ -160,6 +195,7 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
         let technician = arrTechnicians[technicianIndex]
 
         // Configure cell
+        cell.imgProfilePhoto.image = loadImage(named: technician.image)
         cell.lblName.text = technician.name
         cell.lblEmail.text = technician.email
 
@@ -252,7 +288,6 @@ class Feature9_2 : UIViewController {
     @IBOutlet weak var lblPhoneNumber: UILabel!
     @IBAction func btnEdit(_ sender: Any) {
         print("Using Edit button...")
-
     }
     
     
@@ -271,11 +306,13 @@ class Feature9_2 : UIViewController {
     func updateUI() {
         guard let tech = technician else { return }
 
+        imgProfilePhoto.image = loadImage(named: tech.image)
         lblUserID.text = tech.userID
         lblFullName.text = tech.name
         lblEmailAddress.text = tech.email
         lblPassword.text = tech.password
-        lblPhoneNumber.text = "+937 \(tech.phoneNumber)"    }
+        lblPhoneNumber.text = "+973 \(tech.phoneNumber)"
+    }
     
     
     override func viewDidLayoutSubviews() {
@@ -289,7 +326,7 @@ class Feature9_2 : UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         lblUserID.applySoftBorder()
         lblFullName.applySoftBorder()
         lblEmailAddress.applySoftBorder()
@@ -327,7 +364,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
     var technician: Technician?
     var technicianIndex: Int?
     
-    	    override func viewDidLoad() {
+            override func viewDidLoad() {
         super.viewDidLoad()
         txtUserID.addLeftPadding(5)
         txtFullName.addLeftPadding(5)
@@ -336,13 +373,13 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         txtPhoneNumber.addLeftPadding(5)
 
         if let tech = technician {
+            imgProfilePhoto.image = loadImage(named: tech.image)
             txtUserID.text = tech.userID
             txtFullName.text = (tech.name)
             txtEmailAddress.text = tech.email
             txtPassword.text = tech.password
             txtPhoneNumber.text = (tech.phoneNumber)
         }
-        
         
         txtUserID.applySoftBorder()
         txtFullName.applySoftBorder()
@@ -367,11 +404,11 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
     @IBAction func btnSaveChanges(_ sender: Any) {
         print("checking...")
         guard
-            let userID = txtUserID.text, !userID.isEmpty,
-            let name = txtFullName.text, !name.isEmpty,
-            let email = txtEmailAddress.text, !email.isEmpty,
-            let password = txtPassword.text, !password.isEmpty,
-            let phone = txtPhoneNumber.text, !phone.isEmpty
+            let userID = txtUserID.text?.trimmingCharacters(in: .whitespacesAndNewlines), !userID.isEmpty,
+            let name = txtFullName.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty,
+            let email = txtEmailAddress.text?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty,
+            let password = txtPassword.text?.trimmingCharacters(in: .whitespacesAndNewlines), !password.isEmpty,
+            let phone = txtPhoneNumber.text?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty
         else {
             // Show alert if any field is empty
             let alert = UIAlertController(title: "Warning", message: "All fields are required.", preferredStyle: .alert)
@@ -380,26 +417,39 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             return
         }
         
-        
-        guard let index = technicianIndex else {  let alert = UIAlertController(title: "Error", message: "Unable to save changes. Technician data is missing.", preferredStyle: .alert)
+        guard let index = technicianIndex else {
+            let alert = UIAlertController(title: "Error", message: "Unable to save changes. Technician data is missing.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
-            return }
+            return
+        }
         
-        guard let phone = txtPhoneNumber.text,
-                 isValidBahrainPhone(phone) else {
+        guard isValidBahrainPhone(phone) else {
                showAlert("Phone number must be 8 digits")
                return
            }
-         arrTechnicians[index] = Technician(
-                        userID: userID,
-                        name: name,
-                        email: email,
-                        password: password,
-                        phoneNumber: phone
-                    )
-                    print("Editing \(arrTechnicians[index])")
-                    navigationController?.popViewController(animated: true)
+        
+        // Handle image: if user picked a new one, save it
+        var newImageName = arrTechnicians[index].image // keep old one by default
+        
+        if let currentImage = imgProfilePhoto.image,
+           let originalTech = technician,
+           currentImage.pngData() != loadImage(named: originalTech.image)?.pngData() { // Image changed
+            
+            newImageName = saveImageToDocuments(currentImage, for: userID)
+        }
+        
+        arrTechnicians[index] = Technician(
+            image: newImageName,
+            userID: userID,
+            name: name,
+            email: email,
+            password: password,
+            phoneNumber: phone
+        )
+        
+        print("Editing \(arrTechnicians[index])")
+        navigationController?.popViewController(animated: true)
                 
         
     }
@@ -502,7 +552,8 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         
         txtPhoneNumber.keyboardType = .numberPad
 
-        imgProfilePhoto.image = UIImage(named: "imgProfilePhoto")!
+        imgProfilePhoto.image = UIImage(systemName: "person.fill")!
+        imgProfilePhoto.tintColor = UIColor(red: 40/255, green: 69/255, blue: 90/255, alpha: 1)
         
         
         btnAddTechnician.isHidden = true
@@ -549,15 +600,16 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
                return
            }
 
-           arrTechnicians.append(
-               Technician(
-                   userID: txtUserID.text!,
-                   name: txtFullName.text!,
-                   email: txtEmailAddress.text!,
-                   password: nil,
-                   phoneNumber: phone   // Stored as String
-               )
+       arrTechnicians.append(
+           Technician(
+                image: "person.fill",
+                userID: txtUserID.text!,
+                name: txtFullName.text!,
+                email: txtEmailAddress.text!,
+                password: nil,
+                phoneNumber: phone   // Stored as String
            )
+       )
 
            navigationController?.popViewController(animated: true)
 
@@ -579,7 +631,6 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: phone)
     }
 
-    
     func showAlert(_ message: String) {
         let alert = UIAlertController(title: "Invalid Input",
                                       message: message,
@@ -587,10 +638,4 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
-
-    
-        
 }
-
-
-
