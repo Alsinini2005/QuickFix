@@ -1,97 +1,62 @@
 import UIKit
 import FirebaseFirestore
 
-// MARK: - Storyboard Cell
-final class InfoCell: UITableViewCell {
-
-    @IBOutlet weak var titleLeftLabel: UILabel!
-    @IBOutlet weak var titleRightLabel: UILabel!
-
-    @IBOutlet weak var submittedLeftLabel: UILabel!
-    @IBOutlet weak var submittedRightLabel: UILabel!
-
-    @IBOutlet weak var statusLeftLabel: UILabel!
-    @IBOutlet weak var statusRightLabel: UILabel!
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        selectionStyle = .none
-
-        titleLeftLabel.text = "Problem:"
-        submittedLeftLabel.text = "Submitted:"
-        statusLeftLabel.text = "Status:"
-
-        titleLeftLabel.textColor = .secondaryLabel
-        submittedLeftLabel.textColor = .secondaryLabel
-        statusLeftLabel.textColor = .secondaryLabel
-
-        titleRightLabel.numberOfLines = 0
-        titleRightLabel.lineBreakMode = .byWordWrapping
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        titleRightLabel.text = nil
-        submittedRightLabel.text = nil
-        statusRightLabel.text = nil
-    }
-
-    func configure(problem: String, submitted: String, status: String) {
-        titleRightLabel.text = problem
-        submittedRightLabel.text = submitted
-        statusRightLabel.text = status
-    }
+// MARK: - Model
+struct TaskRow {
+    let id: String
+    let title: String
+    let location: String
+    let status: String
+    let submittedAt: Date
 }
 
-// MARK: - Task List
 final class TaskListViewController: UIViewController {
 
-    @IBOutlet weak var tableView: UITableView!
+    // MARK: - UI
+    private let tableView = UITableView(frame: .zero, style: .plain)
 
+    // MARK: - Firebase
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
 
-    private struct Row {
-        let id: String
-        let problemDescription: String
-        let createdAt: Date
-        let status: String
-    }
+    // MARK: - Data
+    private var tasks: [TaskRow] = []
+    private var selectedTaskId: String?
 
-    private var rows: [Row] = []
-
-    private lazy var df: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "MMM d, yyyy h:mm a"
-        return f
-    }()
-
+    // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Task List"
+        title = "Tasks"
+        view.backgroundColor = .systemBackground
+
         setupTable()
         startListening()
     }
 
     deinit { listener?.remove() }
 
+    // MARK: - Table setup
     private func setupTable() {
-        if tableView == nil {
-            print("❌ tableView outlet NOT connected")
-            return
-        }
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(tableView)
 
-        tableView.dataSource = self
-        tableView.delegate = self
-
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 150
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
 
         tableView.separatorStyle = .none
-        tableView.backgroundColor = .clear
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 20, right: 0)
+        tableView.backgroundColor = .systemGroupedBackground
+        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+
+        tableView.register(TaskCardCell.self, forCellReuseIdentifier: TaskCardCell.reuseId)
+        tableView.dataSource = self
+        tableView.delegate = self
     }
 
+    // MARK: - Firestore
     private func startListening() {
         listener?.remove()
 
@@ -100,93 +65,178 @@ final class TaskListViewController: UIViewController {
             .addSnapshotListener { [weak self] snap, err in
                 guard let self else { return }
 
-                if let err = err {
-                    print("❌ Firestore error:", err.localizedDescription)
+                if let err {
+                    print("❌ Task list error:", err.localizedDescription)
                     return
                 }
 
-                let docs = snap?.documents ?? []
-
-                self.rows = docs.map { doc in
+                self.tasks = snap?.documents.map { doc in
                     let d = doc.data()
-                    return Row(
-                        id: doc.documentID,
-                        problemDescription: (d["problemDescription"] as? String) ?? "(no description)",
-                        createdAt: (d["createdAt"] as? Timestamp)?.dateValue() ?? Date(timeIntervalSince1970: 0),
-                        status: (d["status"] as? String) ?? "pending"
-                    )
-                }
 
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
+                    let title = (d["ticketName"] as? String)
+                        ?? (d["problemTitle"] as? String)
+                        ?? "Untitled Task"
+
+                    let campus = (d["campus"] as? String) ?? ""
+                    let building = (d["building"] as? String) ?? ""
+                    let room = (d["classroom"] as? String) ?? ""
+
+                    let location = [campus, building, room]
+                        .filter { !$0.isEmpty }
+                        .joined(separator: " • ")
+
+                    let status = (d["status"] as? String) ?? "pending"
+                    let submittedAt =
+                        (d["createdAt"] as? Timestamp)?.dateValue() ?? Date()
+
+                    return TaskRow(
+                        id: doc.documentID,
+                        title: title,
+                        location: location.isEmpty ? "No location" : location,
+                        status: status,
+                        submittedAt: submittedAt
+                    )
+                } ?? []
+
+                self.tableView.reloadData()
             }
     }
 
-    private func prettyStatus(_ s: String) -> String {
-        switch s.lowercased() {
-        case "pending": return "Pending"
-        case "in_progress", "in progress": return "In Progress"
-        case "completed": return "Completed"
-        default: return s
-        }
-    }
-
-    // ✅ Option A: storyboard segue (cell -> details). We only pass requestId here.
+    // MARK: - Segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard let dest = segue.destination as? TicketDetailsViewController else { return }
-        guard let indexPath = tableView.indexPathForSelectedRow else { return }
-        dest.requestId = rows[indexPath.row].id
+        super.prepare(for: segue, sender: sender)
+
+        if segue.identifier == "showTaskDetails",
+           let vc = segue.destination as? TicketDetailsViewController {
+            vc.requestId = selectedTaskId
+        }
     }
 }
 
-// MARK: - UITableViewDataSource
-extension TaskListViewController: UITableViewDataSource {
+// MARK: - Table DataSource & Delegate
+extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        rows.count
+        tasks.count
     }
 
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: "InfoCell",
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: TaskCardCell.reuseId,
             for: indexPath
-        ) as? InfoCell else {
-            return UITableViewCell()
-        }
+        ) as! TaskCardCell
 
-        let r = rows[indexPath.row]
-        let submitted = (r.createdAt.timeIntervalSince1970 == 0)
-            ? "-"
-            : df.string(from: r.createdAt)
-
-        cell.configure(
-            problem: r.problemDescription,
-            submitted: submitted,
-            status: prettyStatus(r.status)
-        )
-
+        cell.configure(with: tasks[indexPath.row])
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+
+        selectedTaskId = tasks[indexPath.row].id
+        performSegue(withIdentifier: "showTaskDetails", sender: self)
     }
 }
 
-// MARK: - UITableViewDelegate
-extension TaskListViewController: UITableViewDelegate {
+// MARK: - Custom Cell
+final class TaskCardCell: UITableViewCell {
 
-    // ✅ Option A: do NOT call performSegue here. storyboard handles navigation.
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+    static let reuseId = "TaskCardCell"
+
+    private let card = UIView()
+    private let titleLabel = UILabel()
+    private let locationLabel = UILabel()
+    private let dateLabel = UILabel()
+    private let statusLabel = UILabel()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        selectionStyle = .none
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        setupUI()
     }
 
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        12
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let v = UIView()
-        v.backgroundColor = .clear
-        return v
+    private func setupUI() {
+        card.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(card)
+
+        card.backgroundColor = .secondarySystemGroupedBackground
+        card.layer.cornerRadius = 16
+        card.layer.shadowOpacity = 0.06
+        card.layer.shadowRadius = 8
+        card.layer.shadowOffset = CGSize(width: 0, height: 6)
+
+        NSLayoutConstraint.activate([
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
+        ])
+
+        titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        titleLabel.numberOfLines = 2
+
+        locationLabel.font = .systemFont(ofSize: 14)
+        locationLabel.textColor = .secondaryLabel
+
+        dateLabel.font = .systemFont(ofSize: 13)
+        dateLabel.textColor = .secondaryLabel
+
+        statusLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        statusLabel.textColor = .white
+        statusLabel.layer.cornerRadius = 10
+        statusLabel.layer.masksToBounds = true
+        statusLabel.textAlignment = .center
+
+        let topRow = UIStackView(arrangedSubviews: [titleLabel, statusLabel])
+        topRow.axis = .horizontal
+        topRow.spacing = 10
+
+        statusLabel.setContentHuggingPriority(.required, for: .horizontal)
+
+        let stack = UIStackView(arrangedSubviews: [topRow, locationLabel, dateLabel])
+        stack.axis = .vertical
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        card.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            statusLabel.heightAnchor.constraint(equalToConstant: 22),
+            statusLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 86)
+        ])
+    }
+
+    func configure(with task: TaskRow) {
+        titleLabel.text = task.title
+        locationLabel.text = task.location
+
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .short
+        dateLabel.text = "Submitted: \(df.string(from: task.submittedAt))"
+
+        switch task.status.lowercased() {
+        case "completed":
+            statusLabel.text = "  Completed  "
+            statusLabel.backgroundColor = .systemGreen
+        case "in_progress":
+            statusLabel.text = "  In Progress  "
+            statusLabel.backgroundColor = .systemOrange
+        default:
+            statusLabel.text = "  Pending  "
+            statusLabel.backgroundColor = .systemRed
+        }
     }
 }

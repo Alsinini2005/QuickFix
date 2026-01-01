@@ -1,10 +1,3 @@
-//
-//  AdminReportViewController.swift
-//  QuickFix
-//
-//  Admin can generate Monthly and Yearly reports
-//
-
 import UIKit
 import FirebaseFirestore
 
@@ -59,7 +52,10 @@ final class AdminReportViewController: UIViewController {
                     endExclusive: end
                 )
 
-                showAlert(title: "Done", message: "Monthly report generated ✅")
+                showAlert(title: "Done", message: "Monthly report generated ✅") { [weak self] in
+                    self?.goBack()
+                }
+
             } catch {
                 showAlert(title: "Error", message: error.localizedDescription)
             }
@@ -84,7 +80,10 @@ final class AdminReportViewController: UIViewController {
                     endExclusive: end
                 )
 
-                showAlert(title: "Done", message: "Yearly report generated ✅")
+                showAlert(title: "Done", message: "Yearly report generated ✅") { [weak self] in
+                    self?.goBack()
+                }
+
             } catch {
                 showAlert(title: "Error", message: error.localizedDescription)
             }
@@ -99,7 +98,6 @@ final class AdminReportViewController: UIViewController {
         endExclusive: Date
     ) async throws {
 
-        // Pull requests in date range using createdAt
         let snapshot = try await db.collection("requests")
             .whereField("createdAt", isGreaterThanOrEqualTo: Timestamp(date: start))
             .whereField("createdAt", isLessThan: Timestamp(date: endExclusive))
@@ -107,14 +105,11 @@ final class AdminReportViewController: UIViewController {
 
         var totalAssigned = 0
         var totalCompleted = 0
-
-        // technicianId -> ["assigned": Int, "completed": Int]
         var technicianStats: [String: [String: Int]] = [:]
 
         for doc in snapshot.documents {
             let data = doc.data()
 
-            // If no technicianId, consider it unassigned (not counted in technician performance)
             let technicianId = (data["technicianId"] as? String) ?? "unassigned"
             let status = (data["status"] as? String) ?? "pending"
 
@@ -129,7 +124,6 @@ final class AdminReportViewController: UIViewController {
 
             stats["assigned", default: 0] += 1
 
-            // ✅ Your real completed status
             if status == "completed" {
                 stats["completed", default: 0] += 1
                 totalCompleted += 1
@@ -139,7 +133,7 @@ final class AdminReportViewController: UIViewController {
         }
 
         let payload: [String: Any] = [
-            "type": type,  // "monthly" or "yearly"
+            "type": type,
             "periodStart": Timestamp(date: start),
             "periodEnd": Timestamp(date: endExclusive),
             "createdAt": FieldValue.serverTimestamp(),
@@ -170,7 +164,6 @@ final class AdminReportViewController: UIViewController {
         Calendar.current.startOfDay(for: date)
     }
 
-    /// Firestore-friendly exclusive end (next day at 00:00)
     private func endExclusive(_ date: Date) -> Date {
         Calendar.current.date(
             byAdding: .day,
@@ -179,11 +172,21 @@ final class AdminReportViewController: UIViewController {
         )!
     }
 
-    private func showAlert(title: String, message: String) {
+    private func goBack() {
+        if let nav = navigationController {
+            nav.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
+    }
+
+    private func showAlert(title: String, message: String, onOK: (() -> Void)? = nil) {
         let alert = UIAlertController(title: title,
                                       message: message,
                                       preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            onOK?()
+        })
         present(alert, animated: true)
     }
 }
