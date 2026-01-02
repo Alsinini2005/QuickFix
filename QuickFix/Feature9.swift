@@ -2,13 +2,24 @@
 //  TechnicianTableViewCell.swift
 //  QuickFix
 //
-//  Created by Zainab Aman on 20/12/2025.
+//  Created by Mohd Aman on 20/12/2025.
 //
 
 import UIKit
+import FirebaseCore
+import FirebaseFirestore
+import FirebaseFirestore
+import FirebaseStorage // If uploading images
+import Kingfisher // Add via SPM: https://github.com/onevcat/Kingfisher (for async image loading)
 
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        FirebaseApp.configure()
+        return true
+    }
+}
 struct Technician {
-    var image : UIImage
+    var image : String
     var userID : String
     var name : String
     var email : String
@@ -18,13 +29,155 @@ struct Technician {
 }
 
 var arrTechnicians = [
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
-    Technician(image: UIImage(named: "imgProfilePhoto")!, userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
+    Technician(image: "person.fill", userID: "5B084245", name: "Mohammed Aman", email: "mohammed@gmail.com", password: "pass123", phoneNumber: "13497852"),
+    Technician(image: "imgProfilePhoto", userID: "5B085764", name: "Ali Khan", email: "ali@gmail.com", password: "pass456", phoneNumber: "9986243"),
+    Technician(image: "imgProfilePhoto", userID: "5B031457", name: "Sara Ahmed", email: "sara@gmail.com", password: "pass789", phoneNumber: "36455198"),
+    Technician(image: "imgProfilePhoto", userID: "5B054478", name: "Hassan Raza", email: "hassan@gmail.com", password: "pass321", phoneNumber: "66315874"),
+    Technician(image: "imgProfilePhoto", userID: "5B084456", name: "Ayesha Noor", email: "ayesha@gmail.com", password: "pass654", phoneNumber: "31657848"),
 
 ]
+
+
+
+
+
+class FirebaseManager {
+    static let shared = FirebaseManager()
+    private let db = Firestore.firestore()
+    private let storage = Storage.storage() // For images
+
+    // Upload all technicians (or a single one)
+    func uploadTechnicians(_ technicians: [Technician]) async throws {
+        for tech in technicians {
+            // Prepare data (exclude image if not uploading to Storage)
+            var data: [String: Any] = [
+                "userID": tech.userID,
+                "name": tech.name,
+                "email": tech.email,
+                "password": tech.password ?? "", // WARNING: Hash this in production!
+                "phoneNumber": tech.phoneNumber
+            ]
+            
+            // Handle image upload to Storage if it's a custom local image
+            if tech.image.hasPrefix("custom_"), let localImage = loadImage(named: tech.image) {
+                let imageURL = try await uploadImageToStorage(localImage, for: tech.userID)
+                data["image"] = imageURL // Store download URL instead of local name
+            } else {
+                data["image"] = tech.image // Asset name or existing URL
+            }
+            
+            // Upload to Firestore (use userID as doc ID to avoid duplicates)
+            try await db.collection("technicians").document(tech.userID).setData(data)
+        }
+    }
+    
+    // Helper to upload image to Firebase Storage and get URL
+    private func uploadImageToStorage(_ image: UIImage, for userID: String) async throws -> String {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw NSError(domain: "ImageError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
+        }
+        
+        let ref = storage.reference().child("technician_images/\(userID).jpg")
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        _ = try await ref.putDataAsync(imageData, metadata: metadata)
+        let downloadURL = try await ref.downloadURL()
+        return downloadURL.absoluteString
+    }
+}
+// Helper to get Documents directory URL
+func documentsDirectory() -> URL {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+}
+
+// Save UIImage to Documents and return filename
+func saveImageToDocuments(_ image: UIImage, for userID: String) -> String {
+    let filename = "custom_\(userID).png"
+    let fileURL = documentsDirectory().appendingPathComponent(filename)
+    
+    if let data = image.pngData() {
+        try? data.write(to: fileURL)
+    }
+    return filename
+}
+
+// Load image from either asset catalog or Documents
+func loadImage(named imageName: String) -> UIImage? {
+    // First try bundled assets
+    if let assetImage = UIImage(named: imageName) {
+        return assetImage
+    }
+    
+    // Then try Documents directory
+    let fileURL = documentsDirectory().appendingPathComponent(imageName)
+    if let image = UIImage(contentsOfFile: fileURL.path) {
+        return image
+    }
+    
+    // Fallback
+    return UIImage(systemName: "person.crop.circle.fill")
+}
+
+
+
+func fetchTechnicians() async throws -> [Technician] {
+    let snapshot = try await db.collection("technicians").getDocuments()
+    var technicians: [Technician] = []
+    
+    for document in snapshot.documents {
+        let data = document.data()
+        let tech = Technician(
+            image: data["image"] as? String ?? "person.fill", // Download URL or asset name
+            userID: data["userID"] as? String ?? "",
+            name: data["name"] as? String ?? "",
+            email: data["email"] as? String ?? "",
+            password: data["password"] as? String,
+            phoneNumber: data["phoneNumber"] as? String ?? ""
+        )
+        technicians.append(tech)
+    }
+    
+    return technicians
+}
+
+
+func listenForTechnicians(completion: @escaping ([Technician]) -> Void) {
+    db.collection("technicians").addSnapshotListener { snapshot, error in
+        guard let snapshot = snapshot else {
+            print("Error listening: \(error?.localizedDescription ?? "Unknown")")
+            return
+        }
+        var technicians: [Technician] = []
+        for document in snapshot.documents {
+            let data = document.data()
+            let tech = Technician(
+                image: data["image"] as? String ?? "person.fill",
+                userID: data["userID"] as? String ?? "",
+                name: data["name"] as? String ?? "",
+                email: data["email"] as? String ?? "",
+                password: data["password"] as? String,
+                phoneNumber: data["phoneNumber"] as? String ?? ""
+            )
+            technicians.append(tech)
+        }
+        completion(technicians)
+    }
+}
+
+
+func loadImage(named imageName: String) -> UIImage? {
+    if imageName.hasPrefix("http"), let url = URL(string: imageName) {
+        // Async load (use in cells/details with placeholder)
+        // e.g., in cellForRowAt: cell.imgProfilePhoto.kf.setImage(with: url, placeholder: UIImage(systemName: "person.fill"))
+        return nil // Placeholder for sync cases
+    } else if let assetImage = UIImage(named: imageName) {
+        return assetImage
+    } else {
+        let fileURL = documentsDirectory().appendingPathComponent(imageName)
+        return UIImage(contentsOfFile: fileURL.path)
+    }
+}
 extension UITableView {
 
     func applySoftBorder(
@@ -90,6 +243,16 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
  
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+            Task {
+                do {
+                    arrTechnicians = try await FirebaseManager.shared.fetchTechnicians()
+                    TechnicianTableView.reloadData()
+                    updateTableHeight()
+                } catch {
+                    print("Error fetching technicians: \(error)")
+                    // Show alert to user
+                }
+            }
             if isSearching {
                 let searchText = txtSearch.text?
                     .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -161,7 +324,7 @@ class Feature9_1 : UIViewController,  UITableViewDelegate, UITableViewDataSource
         let technician = arrTechnicians[technicianIndex]
 
         // Configure cell
-        cell.imgProfilePhoto.image = technician.image
+        cell.imgProfilePhoto.image = loadImage(named: technician.image)
         cell.lblName.text = technician.name
         cell.lblEmail.text = technician.email
 
@@ -254,11 +417,6 @@ class Feature9_2 : UIViewController {
     @IBOutlet weak var lblPhoneNumber: UILabel!
     @IBAction func btnEdit(_ sender: Any) {
         print("Using Edit button...")
-//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//            let vc = storyboard.instantiateViewController(withIdentifier: "Feature9_3") as! Feature9_3
-//            vc.technician = technician
-//            vc.technicianIndex = technicianIndex  // ← You might have forgotten this line!
-//            self.navigationController?.pushViewController(vc, animated: true)
     }
     
     
@@ -277,12 +435,13 @@ class Feature9_2 : UIViewController {
     func updateUI() {
         guard let tech = technician else { return }
 
-        imgProfilePhoto.image = tech.image
+        imgProfilePhoto.image = loadImage(named: tech.image)
         lblUserID.text = tech.userID
         lblFullName.text = tech.name
         lblEmailAddress.text = tech.email
         lblPassword.text = tech.password
-        lblPhoneNumber.text = "+937 \(tech.phoneNumber)"    }
+        lblPhoneNumber.text = "+973 \(tech.phoneNumber)"
+    }
     
     
     override func viewDidLayoutSubviews() {
@@ -296,15 +455,6 @@ class Feature9_2 : UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-//         imgProfilePhoto.image = technician?.image
-//         lblUserID.text = technician?.userID
-//         lblFullName.text = technician?.name
-//         lblEmailAddress.text = technician?.email
-//         lblPassword.text = technician?.password
-//         lblPhoneNumber.text = "+973 \(technician?.phoneNumber)"
-        print("F2\nIs? \(technicianIndex)\nNot? \(technician)")
 
         lblUserID.applySoftBorder()
         lblFullName.applySoftBorder()
@@ -343,7 +493,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
     var technician: Technician?
     var technicianIndex: Int?
     
-    	    override func viewDidLoad() {
+            override func viewDidLoad() {
         super.viewDidLoad()
         txtUserID.addLeftPadding(5)
         txtFullName.addLeftPadding(5)
@@ -352,7 +502,7 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
         txtPhoneNumber.addLeftPadding(5)
 
         if let tech = technician {
-            imgProfilePhoto.image = tech.image
+            imgProfilePhoto.image = loadImage(named: tech.image)
             txtUserID.text = tech.userID
             txtFullName.text = (tech.name)
             txtEmailAddress.text = tech.email
@@ -360,8 +510,6 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             txtPhoneNumber.text = (tech.phoneNumber)
         }
         
-        
-                print("F3\nIs? \(technicianIndex)\nNot? \(technician)")
         txtUserID.applySoftBorder()
         txtFullName.applySoftBorder()
         txtEmailAddress.applySoftBorder()
@@ -385,11 +533,11 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
     @IBAction func btnSaveChanges(_ sender: Any) {
         print("checking...")
         guard
-            let userID = txtUserID.text, !userID.isEmpty,
-            let name = txtFullName.text, !name.isEmpty,
-            let email = txtEmailAddress.text, !email.isEmpty,
-            let password = txtPassword.text, !password.isEmpty,
-            let phone = txtPhoneNumber.text, !phone.isEmpty
+            let userID = txtUserID.text?.trimmingCharacters(in: .whitespacesAndNewlines), !userID.isEmpty,
+            let name = txtFullName.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty,
+            let email = txtEmailAddress.text?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty,
+            let password = txtPassword.text?.trimmingCharacters(in: .whitespacesAndNewlines), !password.isEmpty,
+            let phone = txtPhoneNumber.text?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty
         else {
             // Show alert if any field is empty
             let alert = UIAlertController(title: "Warning", message: "All fields are required.", preferredStyle: .alert)
@@ -397,28 +545,40 @@ class Feature9_3: UIViewController, UIImagePickerControllerDelegate, UINavigatio
             self.present(alert, animated: true)
             return
         }
-        print("technicianIndex=\(technicianIndex)")
         
-        guard let index = technicianIndex else {  let alert = UIAlertController(title: "Error", message: "Unable to save changes. Technician data is missing.", preferredStyle: .alert)
+        guard let index = technicianIndex else {
+            let alert = UIAlertController(title: "Error", message: "Unable to save changes. Technician data is missing.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
-            return }
+            return
+        }
         
-        guard let phone = txtPhoneNumber.text,
-                 isValidBahrainPhone(phone) else {
+        guard isValidBahrainPhone(phone) else {
                showAlert("Phone number must be 8 digits")
                return
            }
-         arrTechnicians[index] = Technician(
-                        image: imgProfilePhoto.image ?? UIImage(),
-                        userID: userID,
-                        name: name,
-                        email: email,
-                        password: password,
-                        phoneNumber: phone
-                    )
-                    print("Editing \(arrTechnicians[index])")
-                    navigationController?.popViewController(animated: true)
+        
+        // Handle image: if user picked a new one, save it
+        var newImageName = arrTechnicians[index].image // keep old one by default
+        
+        if let currentImage = imgProfilePhoto.image,
+           let originalTech = technician,
+           currentImage.pngData() != loadImage(named: originalTech.image)?.pngData() { // Image changed
+            
+            newImageName = saveImageToDocuments(currentImage, for: userID)
+        }
+        
+        arrTechnicians[index] = Technician(
+            image: newImageName,
+            userID: userID,
+            name: name,
+            email: email,
+            password: password,
+            phoneNumber: phone
+        )
+        
+        print("Editing \(arrTechnicians[index])")
+        navigationController?.popViewController(animated: true)
                 
         
     }
@@ -521,11 +681,11 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         
         txtPhoneNumber.keyboardType = .numberPad
 
-        imgProfilePhoto.image = UIImage(named: "imgProfilePhoto")!
+        imgProfilePhoto.image = UIImage(systemName: "person.fill")!
+        imgProfilePhoto.tintColor = UIColor(red: 40/255, green: 69/255, blue: 90/255, alpha: 1)
         
         
-        btnAddTechnician.isHidden = true   // or isEnabled = false
-            // Listen for text changes
+        btnAddTechnician.isHidden = true
         txtUserID.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtFullName.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         txtEmailAddress.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
@@ -555,8 +715,6 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
             !(txtPhoneNumber.text?.isEmpty ?? true)
 
         btnAddTechnician.isHidden = !allFilled
-        // OR:
-        // btnAddTechnician.isEnabled = allFilled
     }
     
     
@@ -571,16 +729,16 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
                return
            }
 
-           arrTechnicians.append(
-               Technician(
-                   image: UIImage(named: "imgProfilePhoto")!,
-                   userID: txtUserID.text!,
-                   name: txtFullName.text!,
-                   email: txtEmailAddress.text!,
-                   password: nil,
-                   phoneNumber: phone   // Stored as String
-               )
+       arrTechnicians.append(
+           Technician(
+                image: "person.fill",
+                userID: txtUserID.text!,
+                name: txtFullName.text!,
+                email: txtEmailAddress.text!,
+                password: nil,
+                phoneNumber: phone   // Stored as String
            )
+       )
 
            navigationController?.popViewController(animated: true)
 
@@ -602,7 +760,6 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: phone)
     }
 
-    
     func showAlert(_ message: String) {
         let alert = UIAlertController(title: "Invalid Input",
                                       message: message,
@@ -610,10 +767,4 @@ class Feature9_4 : UIViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
-
-    
-        
 }
-
-
-
