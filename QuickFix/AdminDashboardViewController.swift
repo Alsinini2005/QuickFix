@@ -23,6 +23,7 @@ final class AdminDashboardViewController: UIViewController {
                 "classroom": 12,
                 "status": "pending",
                 "userId": "u4y8w4",
+     "imageUrl":"https://res.cloudinary.com/userrequest/image/upload/v1767340340/pdadm0w5sxsxg5lgc20q.jpg",
                 "createdAt": Timestamp(date: Date())
             ]),
             ("Request 3", [
@@ -34,6 +35,7 @@ final class AdminDashboardViewController: UIViewController {
                 "status": "in_progress",
                 "userId": "student_002",
                 "createdAt": Timestamp(date: Date())
+     "imageUrl":"https://res.cloudinary.com/userrequest/image/upload/v1767340340/pdadm0w5sxsxg5lgc20q.jpg",
             ]),
             ("Request 4", [
                 "title": "Projector issue",
@@ -44,6 +46,7 @@ final class AdminDashboardViewController: UIViewController {
                 "status": "completed",
                 "userId": "student_003",
                 "createdAt": Timestamp(date: Date())
+     "imageUrl":"https://res.cloudinary.com/userrequest/image/upload/v1767340340/pdadm0w5sxsxg5lgc20q.jpg",
             ])
         ]
 

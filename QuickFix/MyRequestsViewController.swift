@@ -49,14 +49,14 @@ private struct RequestRow {
     static func from(doc: QueryDocumentSnapshot) -> RequestRow? {
         let d = doc.data()
 
-        // Firestore fields (based on your StudentRepairRequests collection):
-        // title (String), createdAt (Timestamp), status (String)
         guard
             let title = d["title"] as? String,
             let ts = d["createdAt"] as? Timestamp,
-            let statusStr = d["status"] as? String,
-            let status = RequestStatus(rawValue: statusStr)
+            let statusStr = d["status"] as? String
         else { return nil }
+
+        // safety: if status saved as "pending" only, still show it
+        let status = RequestStatus(rawValue: statusStr) ?? .pending
 
         return RequestRow(
             id: doc.documentID,
@@ -123,31 +123,16 @@ final class MyRequestsViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.contentInset = UIEdgeInsets(top: 14, left: 0, bottom: 20, right: 0)
 
-        // If your cell isn't found (safety)
         if tableView.dequeueReusableCell(withIdentifier: "RequestCell") == nil {
             tableView.register(UITableViewCell.self, forCellReuseIdentifier: "RequestCell")
         }
     }
 
-    // MARK: - Firestore Listener
+    // MARK: - Firestore Listener (ALL REQUESTS, NO userId)
 
     private func startListening() {
         listener?.remove()
 
-        guard let authUid = Auth.auth().currentUser?.uid else {
-            rows = []
-            tableView.reloadData()
-            return
-        }
-
-        // Your Firebase screenshot shows the collection name is "StudentRepairRequests"
-        // and userId is stored as STRING.
-        //
-        // To be extra-safe with older data, we also match a short id (first 6 chars)
-        // in case you previously saved a shortened user id.
-        let shortUid = String(authUid.prefix(6))
-
-        listener?.remove()
         listener = db.collection("StudentRepairRequests")
             .order(by: "createdAt", descending: true)
             .addSnapshotListener { [weak self] snap, err in
@@ -159,16 +144,7 @@ final class MyRequestsViewController: UIViewController {
                 }
 
                 let docs = snap?.documents ?? []
-
-                // Filter to the current user on the client.
-                // (Firestore OR queries require extra setup; this is simplest for a student project.)
-                let filtered = docs.filter { doc in
-                    let d = doc.data()
-                    let uidField = d["userId"] as? String
-                    return uidField == authUid || uidField == shortUid
-                }
-
-                self.rows = filtered.compactMap { RequestRow.from(doc: $0) }
+                self.rows = docs.compactMap { RequestRow.from(doc: $0) }
 
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
@@ -209,13 +185,13 @@ extension MyRequestsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        // Storyboard prototype cell identifier MUST be "RequestCell"
         let cell = tableView.dequeueReusableCell(withIdentifier: "RequestCell", for: indexPath)
         let row = rows[indexPath.row]
 
         cell.selectionStyle = .none
         cell.backgroundColor = .clear
-        cell.accessoryType = .disclosureIndicator
+        cell.accessoryType = .none
+
 
         // reuse-safe cleanup
         let cardTag = 7001
@@ -312,7 +288,6 @@ extension MyRequestsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        // optional
         let r = rows[indexPath.row]
         let msg = "\(r.title)\n\nSubmitted: \(r.createdText)\nStatus: \(r.status.title)"
         showSimpleAlert("Request", msg)

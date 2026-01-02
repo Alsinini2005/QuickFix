@@ -27,15 +27,6 @@ final class AddNewRequestViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        debugOutlets()
-    }
-
-    private func debugOutlets() {
-        print("DEBUG campusButton:", campusButton as Any)
-        print("DEBUG buildingTextField:", buildingTextField as Any)
-        print("DEBUG classroomTextField:", classroomTextField as Any)
-        print("DEBUG descriptionTextField:", descriptionTextField as Any)
-        print("DEBUG previewImageView:", previewImageView as Any)
     }
 
     private func setupUI() {
@@ -54,8 +45,6 @@ final class AddNewRequestViewController: UIViewController {
 
     // MARK: - Campus picker
     @IBAction func campusButtonTapped(_ sender: UIButton) {
-        print("✅ campusButtonTapped fired")
-
         let sheet = UIAlertController(title: "Select Campus", message: nil, preferredStyle: .actionSheet)
 
         campusOptions.forEach { campus in
@@ -83,7 +72,7 @@ final class AddNewRequestViewController: UIViewController {
         present(picker, animated: true)
     }
 
-    // MARK: - Submit
+    // MARK: - Submit (THIS is the only one you should connect in storyboard)
     @IBAction func submitButtonTapped(_ sender: UIButton) {
         sender.isEnabled = false
         view.isUserInteractionEnabled = false
@@ -94,7 +83,7 @@ final class AddNewRequestViewController: UIViewController {
                       let buildingTF = buildingTextField,
                       let classroomTF = classroomTextField,
                       let descTF = descriptionTextField else {
-                    debugOutlets()
+
                     throw NSError(domain: "Outlets", code: 0,
                                   userInfo: [NSLocalizedDescriptionKey: "Some outlets are not connected in storyboard."])
                 }
@@ -119,7 +108,7 @@ final class AddNewRequestViewController: UIViewController {
                 await MainActor.run {
                     sender.isEnabled = true
                     self.view.isUserInteractionEnabled = true
-                    self.navigationController?.popViewController(animated: true)
+                    self.showSuccessAndGoToDashboard()   // ✅ ALERT THEN GO BACK
                 }
 
             } catch {
@@ -131,6 +120,31 @@ final class AddNewRequestViewController: UIViewController {
             }
         }
     }
+
+    // MARK: - Success Alert
+    private func showSuccessAndGoToDashboard() {
+        let alert = UIAlertController(
+            title: "Request Sent",
+            message: "Your request has been submitted successfully.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            let sb = UIStoryboard(name: "Main", bundle: nil)
+            let dashboardVC = sb.instantiateViewController(
+                withIdentifier: "StudentDashViewController"
+            )
+
+            self.navigationController?.setViewControllers(
+                [dashboardVC],
+                animated: true
+            )
+        })
+
+        present(alert, animated: true)
+    }
+
+
 
     // MARK: - Validation
     private func validate(campus: String, building: Int, classroom: Int, desc: String) throws {

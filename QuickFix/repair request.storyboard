@@ -86,7 +86,7 @@
                                 <rect key="frame" x="0.0" y="162" width="393" height="573"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QWt-wZ-joe">
-                                        <rect key="frame" x="0.0" y="0.0" width="393" height="573"/>
+                                        <rect key="frame" x="0.0" y="-55" width="393" height="628"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="252" showsMenuAsPrimaryAction="YES" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Uya-Ek-xql">
                                                 <rect key="frame" x="25" y="37" width="347" height="30"/>
@@ -173,10 +173,10 @@
                                             <constraint firstItem="PJu-6T-kFi" firstAttribute="top" secondItem="n8J-38-FJ4" secondAttribute="bottom" constant="8" id="AFD-tO-6Hn"/>
                                             <constraint firstItem="Uya-Ek-xql" firstAttribute="leading" secondItem="QWt-wZ-joe" secondAttribute="leading" constant="25" id="AMK-Bb-VmC"/>
                                             <constraint firstItem="jgX-ci-v0J" firstAttribute="leading" secondItem="eXO-WI-A9G" secondAttribute="trailing" constant="33" id="Cmq-5N-NMh"/>
-                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="XQC-QY-dhN" secondAttribute="trailing" symbolic="YES" id="D62-1J-iLF"/>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="XQC-QY-dhN" secondAttribute="trailing" constant="20" symbolic="YES" id="D62-1J-iLF"/>
                                             <constraint firstItem="VyC-i6-BIc" firstAttribute="leading" secondItem="lqg-UM-hzQ" secondAttribute="leading" id="FOB-RX-9FW"/>
                                             <constraint firstItem="jgX-ci-v0J" firstAttribute="top" secondItem="V8F-wX-jnv" secondAttribute="bottom" constant="85" id="GYo-q1-dcJ"/>
-                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="WB2-8H-ldW" secondAttribute="trailing" symbolic="YES" id="Gqf-y8-Fxu"/>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="WB2-8H-ldW" secondAttribute="trailing" constant="20" symbolic="YES" id="Gqf-y8-Fxu"/>
                                             <constraint firstItem="jgX-ci-v0J" firstAttribute="leading" secondItem="eXO-WI-A9G" secondAttribute="trailing" constant="33" id="JHo-jp-kvO"/>
                                             <constraint firstItem="jgX-ci-v0J" firstAttribute="top" secondItem="V8F-wX-jnv" secondAttribute="bottom" constant="85" id="LfL-LX-Pzr"/>
                                             <constraint firstItem="wNp-xi-dJL" firstAttribute="leading" secondItem="QWt-wZ-joe" secondAttribute="leading" constant="25" id="MEH-Ub-RwT"/>
@@ -195,13 +195,13 @@
                                             <constraint firstItem="lqg-UM-hzQ" firstAttribute="top" secondItem="PJu-6T-kFi" secondAttribute="bottom" constant="21" id="gyP-Ux-IKd"/>
                                             <constraint firstItem="eXO-WI-A9G" firstAttribute="top" secondItem="wNp-xi-dJL" secondAttribute="bottom" constant="18" id="hej-oV-yMv"/>
                                             <constraint firstItem="XQC-QY-dhN" firstAttribute="top" secondItem="lqg-UM-hzQ" secondAttribute="bottom" constant="22" id="ja3-Jn-hyM"/>
-                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="PJu-6T-kFi" secondAttribute="trailing" symbolic="YES" id="nbR-X5-Niv"/>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="PJu-6T-kFi" secondAttribute="trailing" constant="20" symbolic="YES" id="nbR-X5-Niv"/>
                                             <constraint firstItem="PJu-6T-kFi" firstAttribute="leading" secondItem="QWt-wZ-joe" secondAttribute="leading" constant="17" id="noy-N8-X4s"/>
                                             <constraint firstAttribute="trailing" secondItem="Uya-Ek-xql" secondAttribute="trailing" constant="21" id="o2R-tn-Xyd"/>
                                             <constraint firstItem="WB2-8H-ldW" firstAttribute="top" secondItem="Uya-Ek-xql" secondAttribute="bottom" constant="17" id="oQw-fB-qfr"/>
-                                            <constraint firstAttribute="bottom" secondItem="eXO-WI-A9G" secondAttribute="bottom" constant="27" id="pjZ-LH-2CP"/>
+                                            <constraint firstAttribute="bottom" secondItem="eXO-WI-A9G" secondAttribute="bottom" constant="82" id="pjZ-LH-2CP"/>
                                             <constraint firstItem="V8F-wX-jnv" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="wNp-xi-dJL" secondAttribute="trailing" symbolic="YES" id="qlJ-ia-yvO"/>
-                                            <constraint firstAttribute="bottom" secondItem="jgX-ci-v0J" secondAttribute="bottom" constant="27" id="sS2-4a-QXt"/>
+                                            <constraint firstAttribute="bottom" secondItem="jgX-ci-v0J" secondAttribute="bottom" constant="82" id="sS2-4a-QXt"/>
                                             <constraint firstItem="LqP-qL-JAp" firstAttribute="leading" secondItem="QWt-wZ-joe" secondAttribute="leading" constant="25" id="tZU-GC-K7W"/>
                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="LqP-qL-JAp" secondAttribute="trailing" constant="20" symbolic="YES" id="umX-u9-ZAx"/>
                                             <constraint firstItem="VyC-i6-BIc" firstAttribute="top" secondItem="XQC-QY-dhN" secondAttribute="bottom" constant="17" id="weQ-CV-KID"/>
@@ -212,7 +212,7 @@
                                     </view>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstItem="QWt-wZ-joe" firstAttribute="top" secondItem="42V-oI-Lct" secondAttribute="top" id="4sO-tp-P0a"/>
+                                    <constraint firstItem="QWt-wZ-joe" firstAttribute="top" secondItem="42V-oI-Lct" secondAttribute="top" constant="-55" id="4sO-tp-P0a"/>
                                     <constraint firstAttribute="trailing" secondItem="QWt-wZ-joe" secondAttribute="trailing" id="BaG-aw-Qtm"/>
                                     <constraint firstItem="QWt-wZ-joe" firstAttribute="bottom" secondItem="42V-oI-Lct" secondAttribute="bottom" id="UxL-ly-Z5u"/>
                                     <constraint firstAttribute="bottom" secondItem="QWt-wZ-joe" secondAttribute="bottom" id="Vpl-as-NTT"/>
@@ -275,7 +275,7 @@
         <!--Dashboard-->
         <scene sceneID="cv0-cm-rD5">
             <objects>
-                <viewController id="pVw-21-jZh" customClass="StudentDashViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="StudentDashViewController" storyboardIdentifier="StudentDashViewController" id="pVw-21-jZh" customClass="StudentDashViewController" customModule="QuickFix" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6iG-fZ-5Nd">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -290,13 +290,13 @@
                                                 <rect key="frame" x="0.0" y="0.0" width="143" height="84"/>
                                                 <subviews>
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.crop.circle" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="nqL-N6-kRn">
-                                                        <rect key="frame" x="0.0" y="0.6666666666666643" width="143" height="82.666666666666686"/>
+                                                        <rect key="frame" x="0.0" y="0.6666666666666643" width="119" height="82.666666666666686"/>
                                                         <color key="backgroundColor" red="0.89803922179999995" green="0.89803922179999995" blue="0.91372549530000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                     </imageView>
                                                 </subviews>
                                                 <color key="backgroundColor" red="0.89803922179999995" green="0.89803922179999995" blue="0.91372549530000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="trailing" secondItem="nqL-N6-kRn" secondAttribute="trailing" id="Kfm-CD-ya3"/>
+                                                    <constraint firstAttribute="trailing" secondItem="nqL-N6-kRn" secondAttribute="trailing" constant="24" id="Kfm-CD-ya3"/>
                                                     <constraint firstItem="nqL-N6-kRn" firstAttribute="leading" secondItem="Wsh-uE-Vp5" secondAttribute="leading" id="QIF-b7-Hoo"/>
                                                     <constraint firstItem="nqL-N6-kRn" firstAttribute="top" secondItem="Wsh-uE-Vp5" secondAttribute="top" id="Uz1-re-tEZ"/>
                                                     <constraint firstAttribute="bottom" secondItem="nqL-N6-kRn" secondAttribute="bottom" id="vLw-gA-2xn"/>
@@ -450,7 +450,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="vf9-qO-bJe"/>
+        <segue reference="JMX-BR-59A"/>
         <segue reference="E9p-Tr-Q5U"/>
     </inferredMetricsTieBreakers>
     <resources>

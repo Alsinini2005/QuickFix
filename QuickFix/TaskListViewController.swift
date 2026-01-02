@@ -73,9 +73,9 @@ final class TaskListViewController: UIViewController {
                 self.tasks = snap?.documents.map { doc in
                     let d = doc.data()
 
-                    let title = (d["ticketName"] as? String)
-                        ?? (d["problemTitle"] as? String)
-                        ?? "Untitled Task"
+                    let title = (d["problemDescription"] as? String)
+                        ?? "No Description"
+
 
                     let campus = (d["campus"] as? String) ?? ""
                     let building = (d["building"] as? String) ?? ""
